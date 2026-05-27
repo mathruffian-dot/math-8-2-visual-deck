@@ -105,6 +105,7 @@ function prevSlide() {
   }
 }
 
+// Global exposure is bound to window at the bottom of the file
 function nextSlide() {
   if (currentStage < 5) {
     setStage(currentStage + 1);
@@ -184,6 +185,15 @@ function setStage(stageIdx) {
       renderStage5();
       break;
   }
+
+  // Trigger MathJax typeset on slide transition asynchronously
+  if (window.MathJax) {
+    if (window.MathJax.typesetPromise) {
+      window.MathJax.typesetPromise();
+    } else if (window.MathJax.typeset) {
+      window.MathJax.typeset();
+    }
+  }
 }
 
 // --- Helper Functions ---
@@ -228,12 +238,11 @@ function getSVGCoords(e) {
 function startS3Drag(e) {
   if (currentStage !== 3) return;
   const coords = getSVGCoords(e);
-  // Check if close to vertex A (which is at coordinates governed by the slider)
   const ax = parseFloat(document.getElementById('slider-s3-x').value);
   const ay = parseFloat(document.getElementById('slider-s3-y').value);
   
   const dist = Math.hypot(coords.x - ax, coords.y - ay);
-  if (dist < 22) { // Drag radius threshold
+  if (dist < 22) {
     isDraggingS3Vertex = true;
     geometrySvg.style.cursor = 'grabbing';
     e.preventDefault();
@@ -245,11 +254,9 @@ function dragS3Vertex(e) {
   e.preventDefault();
   const coords = getSVGCoords(e);
   
-  // Constrain to canvas viewport boundaries
   const cx = Math.max(10, Math.min(390, coords.x));
-  const cy = Math.max(50, Math.min(270, coords.y)); // Don't let it overlap base too much
+  const cy = Math.max(50, Math.min(270, coords.y));
   
-  // Update sliders & text values
   document.getElementById('slider-s3-x').value = Math.round(cx);
   document.getElementById('slider-s3-y').value = Math.round(cy);
   document.getElementById('val-s3-x').innerText = Math.round(cx);
@@ -278,13 +285,11 @@ function startStage0OverviewAnim() {
     
     angle = (angle + 0.6) % 360;
     
-    // Draw rotating complex grid & triangles to show visual excellence
     if (svgDrawGroup) svgDrawGroup.innerHTML = '';
     
     const rad = (angle * Math.PI) / 180;
     const r = 90;
     
-    // Rotating Vertices
     const ax = 200 + r * Math.cos(rad - Math.PI/2);
     const ay = 200 + r * Math.sin(rad - Math.PI/2);
     const bx = 200 + r * Math.cos(rad + Math.PI/6);
@@ -292,7 +297,6 @@ function startStage0OverviewAnim() {
     const cx = 200 + r * Math.cos(rad + 5*Math.PI/6);
     const cy = 200 + r * Math.sin(rad + 5*Math.PI/6);
     
-    // Draw outer orbital circle
     const orbital = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
     orbital.setAttribute('cx', '200');
     orbital.setAttribute('cy', '200');
@@ -302,7 +306,6 @@ function startStage0OverviewAnim() {
     orbital.setAttribute('stroke-dasharray', '5, 5');
     if (svgDrawGroup) svgDrawGroup.appendChild(orbital);
     
-    // Draw inner geometry triangle
     const tri = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
     tri.setAttribute('points', `${ax},${ay} ${bx},${by} ${cx},${cy}`);
     tri.setAttribute('fill', 'none');
@@ -311,7 +314,6 @@ function startStage0OverviewAnim() {
     tri.setAttribute('filter', 'drop-shadow(0 0 10px rgba(6, 182, 212, 0.5))');
     if (svgDrawGroup) svgDrawGroup.appendChild(tri);
     
-    // Draw glowing nodes
     [ {x: ax, label: 'A', color: '#06b6d4'}, 
       {x: bx, label: 'B', color: '#a855f7'}, 
       {x: cx, label: 'C', color: '#fbbf24'} 
@@ -327,7 +329,6 @@ function startStage0OverviewAnim() {
       if (svgDrawGroup) svgDrawGroup.appendChild(dot);
     });
 
-    // Define linear gradient inside SVG dynamically
     if (!document.getElementById('stage0-neon-grad')) {
       const defs = geometrySvg.querySelector('defs');
       if (defs) {
@@ -365,39 +366,32 @@ function renderStage1() {
   const sideB = parseInt(document.getElementById('slider-s1-b').value);
   const sideC = parseInt(document.getElementById('slider-s1-c').value);
   
-  // Base endpoints
   const bx = 200 - sideC / 2;
   const by = 240;
   const cx = 200 + sideC / 2;
   const cy = 240;
   
   const statusLabel = document.getElementById('triangle-inequality-status');
-  
-  // Check Triangle Inequality
   const canForm = (sideA + sideB > sideC) && (sideA + sideC > sideB) && (sideB + sideC > sideA);
   
   if (canForm) {
     const cosB = (sideA*sideA + sideC*sideC - sideB*sideB) / (2 * sideA * sideC);
-    const angleB = Math.acos(cosB); // rad
+    const angleB = Math.acos(cosB);
     
     const ax = bx + sideA * Math.cos(angleB);
     const ay = by - sideA * Math.sin(angleB);
     
-    // Draw filled polygon
     const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
     polygon.setAttribute('points', `${bx},${by} ${ax},${ay} ${cx},${cy}`);
     polygon.setAttribute('class', 'svg-triangle');
     if (svgDrawGroup) svgDrawGroup.appendChild(polygon);
     
-    // Draw apex lines
     drawLine(bx, by, ax, ay, 'var(--accent-cyan)', 3);
     drawLine(cx, cy, ax, ay, 'var(--accent-purple)', 3);
     
-    // Draw vertex markers
     drawCircle(ax, ay, 6, '#fff', 'var(--accent-cyan)', 3);
     drawText(ax, ay - 18, 'A');
     
-    // Show length tags
     drawText((bx + ax)/2 - 18, (by + ay)/2 - 10, sideA, '#67e8f9');
     drawText((cx + ax)/2 + 18, (cy + ay)/2 - 10, sideB, '#c084fc');
     
@@ -409,9 +403,8 @@ function renderStage1() {
     }
     
   } else {
-    // Invalid Case
-    let thetaB = 0; // flat
-    let thetaC = Math.PI; // flat
+    let thetaB = 0;
+    let thetaC = Math.PI;
     
     if (sideA + sideB <= sideC) {
       thetaB = -15 * Math.PI / 180;
@@ -424,18 +417,13 @@ function renderStage1() {
     const ax2 = cx + sideB * Math.cos(thetaC);
     const ay2 = cy + sideB * Math.sin(thetaC);
     
-    // Draw base line
     drawLine(bx, by, cx, cy, 'var(--text-muted)', 2.5);
-    
-    // Draw failed side A & B
     drawLine(bx, by, ax1, ay1, '#f43f5e', 3.5, '5,5');
     drawLine(cx, cy, ax2, ay2, '#f43f5e', 3.5, '5,5');
     
-    // Draw failed vertex dots
     drawCircle(ax1, ay1, 5, '#f43f5e', '#fff', 1.5);
     drawCircle(ax2, ay2, 5, '#f43f5e', '#fff', 1.5);
     
-    // Highlight gap
     if (sideA + sideB <= sideC) {
       drawLine(ax1, by, ax2, by, '#f43f5e', 3);
       drawText(200, by + 18, `無法碰合！缺口長度: ${Math.round(sideC - (sideA + sideB))}`, '#fb7185');
@@ -451,7 +439,6 @@ function renderStage1() {
     }
   }
   
-  // Render base endpoints
   drawCircle(bx, by, 6, '#fff', 'var(--text-primary)', 3);
   drawCircle(cx, cy, 6, '#fff', 'var(--text-primary)', 3);
   drawText(bx - 12, by + 12, 'B');
@@ -477,19 +464,16 @@ function renderStage2() {
   const cx = ax + legLength * Math.sin(radApexHalf);
   const cy = ay + legLength * Math.cos(radApexHalf);
   
-  // Draw base filled polygon
   const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
   polygon.setAttribute('points', `${ax},${ay} ${bx},${by} ${cx},${cy}`);
   polygon.setAttribute('class', 'svg-triangle');
   polygon.setAttribute('style', 'fill: rgba(168, 85, 247, 0.1); stroke: var(--accent-purple); stroke-width: 3;');
   if (svgDrawGroup) svgDrawGroup.appendChild(polygon);
   
-  // Highlight equal legs (AB and AC) with double neon lines
   drawLine(ax, ay, bx, by, 'var(--accent-cyan)', 3.5);
   drawLine(ax, ay, cx, cy, 'var(--accent-cyan)', 3.5);
   drawLine(bx, by, cx, cy, 'var(--text-muted)', 2);
   
-  // Draw Congruence Ticks
   const midABx = (ax + bx) / 2;
   const midABy = (ay + by) / 2;
   const midACx = (ax + cx) / 2;
@@ -503,7 +487,6 @@ function renderStage2() {
   drawLine(midACx - tickLen*Math.cos(angAC), midACy - tickLen*Math.sin(angAC), 
            midACx + tickLen*Math.cos(angAC), midACy + tickLen*Math.sin(angAC), 'var(--accent-cyan)', 2.5);
 
-  // Draw angle arcs for bottom angles (B and C)
   const bArc = document.createElementNS('http://www.w3.org/2000/svg', 'path');
   const radAB = Math.atan2(ay - by, ax - bx);
   const angABDeg = radAB * 180 / Math.PI;
@@ -522,22 +505,18 @@ function renderStage2() {
   cArc.setAttribute('fill', 'rgba(168, 85, 247, 0.15)');
   if (svgDrawGroup) svgDrawGroup.appendChild(cArc);
   
-  // Draw text values
   drawText(bx + 35, by - 12, `${baseAngle.toFixed(0)}°`, '#c084fc');
   drawText(cx - 35, cy - 12, `${baseAngle.toFixed(0)}°`, '#c084fc');
   drawText(ax, ay + 30, `${apexAngle}°`, '#67e8f9');
   
-  // Draw vertex dots
   drawCircle(ax, ay, 6, '#fff', 'var(--accent-cyan)', 3);
   drawCircle(bx, by, 5, '#fff', 'var(--text-primary)', 2);
   drawCircle(cx, cy, 5, '#fff', 'var(--text-primary)', 2);
   
-  // Labels
   drawText(ax, ay - 18, 'A');
   drawText(bx - 12, by + 12, 'B');
   drawText(cx + 12, cy + 12, 'C');
   
-  // Side lengths
   drawText(midABx - 22, midABy - 5, legLength, '#22d3ee');
   drawText(midACx + 22, midACy - 5, legLength, '#22d3ee');
   drawText((bx+cx)/2, by + 18, `底邊長: ${Math.round(2 * legLength * Math.sin(radApexHalf))}`, '#64748b');
@@ -550,7 +529,6 @@ function renderStage3() {
   const ax = parseFloat(document.getElementById('slider-s3-x').value);
   const ay = parseFloat(document.getElementById('slider-s3-y').value);
   
-  // Fixed base vertices
   const bx = 80;
   const by = 280;
   const cx = 320;
@@ -560,12 +538,10 @@ function renderStage3() {
   const pB = { x: bx, y: by };
   const pC = { x: cx, y: cy };
   
-  // Calculate Side Lengths
   const side_a = Math.round(Math.hypot(cx - bx, cy - by)); // Side BC
   const side_b = Math.round(Math.hypot(ax - cx, ay - cy)); // Side AC
   const side_c = Math.round(Math.hypot(ax - bx, ay - by)); // Side AB
   
-  // Calculate Angles
   const angle_A = calculateAngle(pB, pA, pC);
   const angle_B = calculateAngle(pA, pB, pC);
   const angle_C = 180 - angle_A - angle_B;
@@ -613,7 +589,6 @@ function renderStage3() {
     ang.color = tier.color;
   });
 
-  // Render Triangle paths dynamically with tier colored borders
   drawLine(ax, ay, bx, by, sides.find(s => s.label === 'c').color, 4);
   drawLine(ax, ay, cx, cy, sides.find(s => s.label === 'b').color, 4);
   drawLine(bx, by, cx, cy, sides.find(s => s.label === 'a').color, 4);
@@ -624,7 +599,6 @@ function renderStage3() {
   polygon.setAttribute('stroke', 'none');
   if (svgDrawGroup) svgDrawGroup.appendChild(polygon);
 
-  // Render glowing Angle Arc highlights
   const radBC = Math.atan2(cy - by, cx - bx);
   const radBA = Math.atan2(ay - by, ax - bx);
   const pathB = getAngleArcPath(bx, by, 32, radBC*180/Math.PI, radBA*180/Math.PI);
@@ -640,12 +614,10 @@ function renderStage3() {
   const pathA = getAngleArcPath(ax, ay, 32, radAC*180/Math.PI, radAB*180/Math.PI);
   drawPath(pathA, angles.find(a => a.label === 'A').color, 'rgba(255,255,255,0.05)', 3);
 
-  // Labels
   drawText(bx - 12, by + 12, 'B');
   drawText(cx + 12, cy + 12, 'C');
   drawText(ax, ay - 18, 'A');
   
-  // Render adjustable Vertex A handle
   const handleGlow = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
   handleGlow.setAttribute('cx', ax);
   handleGlow.setAttribute('cy', ay);
@@ -685,14 +657,12 @@ function renderStage4() {
   const ax = bx + side_c * Math.cos(radB);
   const ay = by - side_c * Math.sin(radB);
   
-  // Draw base triangle shape
   const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
   polygon.setAttribute('points', `${bx},${by} ${ax},${ay} ${cx},${cy}`);
   polygon.setAttribute('fill', 'rgba(255,255,255,0.02)');
   polygon.setAttribute('stroke', 'rgba(255,255,255,0.05)');
   if (svgDrawGroup) svgDrawGroup.appendChild(polygon);
   
-  // Base line with arrow marker representing Ray CD
   const baseRay = document.createElementNS('http://www.w3.org/2000/svg', 'line');
   baseRay.setAttribute('x1', bx);
   baseRay.setAttribute('y1', by);
@@ -703,37 +673,30 @@ function renderStage4() {
   baseRay.setAttribute('marker-end', 'url(#arrow)');
   if (svgDrawGroup) svgDrawGroup.appendChild(baseRay);
   
-  // Draw other two sides of triangle
   drawLine(bx, by, ax, ay, 'var(--accent-blue)', 3);
   drawLine(cx, cy, ax, ay, 'var(--text-secondary)', 2.5);
   
-  // Angle B arc
   const pathB = getAngleArcPath(bx, by, 30, -angleB, 0);
   drawPath(pathB, 'var(--accent-blue)', 'rgba(59, 130, 246, 0.15)', 3, 'angle-b-arc');
   
-  // Angle A arc
   const radAB = Math.atan2(by - ay, bx - ax);
   const radAC = Math.atan2(cy - ay, cx - ax);
   const pathA = getAngleArcPath(ax, ay, 28, radAC*180/Math.PI, radAB*180/Math.PI);
   drawPath(pathA, 'var(--accent-purple)', 'rgba(168, 85, 247, 0.15)', 3, 'angle-a-arc');
   
-  // Exterior Angle C arc
   const radCA = Math.atan2(ay - cy, ax - cx);
   const pathC_ext = getAngleArcPath(cx, cy, 32, radCA*180/Math.PI, 0);
   drawPath(pathC_ext, '#fb7185', 'rgba(251, 113, 133, 0.15)', 3.5, 'angle-c-ext-arc');
   
-  // Label values
   drawText(bx + 40, by - 12, `${angleB}°`, '#60a5fa');
   drawText(ax, ay + 38, `${angleA}°`, '#c084fc');
   drawText(cx + 42, cy - 16, `${angleC_ext}°`, '#f87171');
   
-  // Label text labels
   drawText(bx - 12, by + 12, 'B');
   drawText(cx - 10, cy + 15, 'C');
   drawText(ax, ay - 16, 'A');
   drawText(dx, dy + 15, 'D');
   
-  // Draw nodes
   drawCircle(ax, ay, 5, '#fff', 'var(--accent-purple)', 2);
   drawCircle(bx, by, 5, '#fff', 'var(--accent-blue)', 2);
   drawCircle(cx, cy, 5, '#fff', 'var(--text-muted)', 2);
@@ -760,7 +723,6 @@ function animateExteriorAngleCollage() {
     oldPeeled.forEach(el => el.remove());
   }
   
-  // 1. Create a cloned angle sector B to fly to C
   const sectorB = document.createElementNS('http://www.w3.org/2000/svg', 'path');
   const pathB = getAngleArcPath(0, 0, 32, -angleB, 0);
   sectorB.setAttribute('d', pathB + ' L 0 0 Z');
@@ -772,7 +734,6 @@ function animateExteriorAngleCollage() {
   sectorB.style.transform = `translate(${bx}px, ${by}px)`;
   if (svgDrawGroup) svgDrawGroup.appendChild(sectorB);
   
-  // 2. Create a cloned angle sector A to fly to C
   const sectorA = document.createElementNS('http://www.w3.org/2000/svg', 'path');
   const radAC = Math.atan2(cy - ay, cx - ax);
   const pathA = getAngleArcPath(0, 0, 28, -angleA, 0);
@@ -788,7 +749,6 @@ function animateExteriorAngleCollage() {
   sectorB.getBoundingClientRect();
   sectorA.getBoundingClientRect();
   
-  // 3. Trigger flight animation
   sectorB.style.transform = `translate(${cx}px, ${cy}px) rotate(0deg)`;
   sectorA.style.transform = `translate(${cx}px, ${cy}px) rotate(${-angleB}deg)`;
 }
@@ -800,7 +760,6 @@ function renderStage5() {
   const trophy = document.createElementNS('http://www.w3.org/2000/svg', 'g');
   trophy.setAttribute('transform', 'translate(100, 100)');
   
-  // Pedestal
   const base = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
   base.setAttribute('x', '60');
   base.setAttribute('y', '150');
@@ -810,7 +769,6 @@ function renderStage5() {
   base.setAttribute('fill', 'var(--text-muted)');
   trophy.appendChild(base);
   
-  // Stem
   const stem = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
   stem.setAttribute('x', '94');
   stem.setAttribute('y', '100');
@@ -819,7 +777,6 @@ function renderStage5() {
   stem.setAttribute('fill', '#d1d5db');
   trophy.appendChild(stem);
   
-  // Cup Bowl
   const bowl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
   bowl.setAttribute('d', 'M 60 40 Q 60 100 100 100 Q 140 100 140 40 Z');
   bowl.setAttribute('fill', 'url(#cup-gold-grad)');
@@ -827,7 +784,6 @@ function renderStage5() {
   bowl.setAttribute('stroke-width', '2');
   trophy.appendChild(bowl);
   
-  // Handles
   const hL = document.createElementNS('http://www.w3.org/2000/svg', 'path');
   hL.setAttribute('d', 'M 60 50 Q 40 50 45 75 Q 50 90 65 85');
   hL.setAttribute('fill', 'none');
@@ -912,7 +868,18 @@ function checkQuiz(qIdx, optionIdx, btnElement) {
     }
   });
   
-  if (expCard) expCard.style.display = 'block';
+  if (expCard) {
+    expCard.style.display = 'block';
+    
+    // Trigger typeset specifically on the quiz card to render newly revealed explanation math!
+    if (window.MathJax) {
+      if (window.MathJax.typesetPromise) {
+        window.MathJax.typesetPromise([expCard]);
+      } else if (window.MathJax.typeset) {
+        window.MathJax.typeset([expCard]);
+      }
+    }
+  }
   
   if (optionIdx === correctOpt) {
     createCanvasConfetti();
@@ -960,6 +927,7 @@ function drawLine(x1, y1, x2, y2, color, width = 2, dash = '') {
   return line;
 }
 
+// Draw MathJax symbol inside SVG canvas (optional, currently text-anchor is fine)
 function drawCircle(cx, cy, r, fill, stroke, strokeWidth = 2) {
   const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
   circle.setAttribute('cx', cx);

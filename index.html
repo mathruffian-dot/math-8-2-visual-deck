@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>國中數學八下：三角形的邊角關係 | 108 課綱 S-8-8 互動幾何動畫</title>
-  <meta name="description" content="專為國中八年級下學期數學設計的三角形邊角關係互動式網頁。透過滑桿與動態幾何動畫，漸進式探索三角不等式、等腰三角形、大角對大邊與三角形外角性質。">
+  <title>國中數學八下：三角形的邊角關係 | 108 課綱 S-8-8 互動簡報動畫</title>
+  <meta name="description" content="專為國中八年級下學期數學設計的三角形邊角關係互動式簡報網頁。透過簡報模式與動態幾何動畫，漸進式探索三角不等式、等腰三角形、大角對大邊與三角形外角性質。">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -17,7 +17,7 @@
     <div class="stage-badge" id="current-stage-badge">導覽：單元大綱</div>
   </header>
 
-  <!-- Main Workspace -->
+  <!-- Main Workspace (Presentation Dashboard Layout) -->
   <main>
     <!-- Left: Explanation and Interactive Controls -->
     <section class="control-panel">
@@ -45,8 +45,8 @@
         </div>
 
         <div class="math-definition">
-          <strong>💡 拖拉滑桿來開始旅程：</strong><br>
-          使用頁面下方的「全域進度滑桿」，您將可循序漸進解鎖四大幾何核心重點，並可親自動手調整模擬器來驗證定理！
+          <strong>💡 簡報切換導引：</strong><br>
+          使用頁面下方的<strong>「上一頁」與「下一頁」按鈕</strong>（或直接使用電腦鍵盤上的 <strong>左(←)、右(→) 方向鍵</strong>）來切換教學重點！在每個重點中，您可以親自動手操作模擬器來驗證定理！
         </div>
       </div>
 
@@ -320,18 +320,31 @@
     </section>
   </main>
 
-  <!-- Bottom: Global Slider and Navigation -->
-  <footer class="global-slider-container">
-    <div class="global-slider-wrapper">
-      <input type="range" id="global-stage-slider" min="0" max="5" value="0" step="1">
-    </div>
-    <div class="global-slider-labels">
-      <span class="global-label active" onclick="setGlobalStage(0)">1. 課綱總覽</span>
-      <span class="global-label" onclick="setGlobalStage(1)">2. 三角不等式</span>
-      <span class="global-label" onclick="setGlobalStage(2)">3. 等腰三角形</span>
-      <span class="global-label" onclick="setGlobalStage(3)">4. 大角對大邊</span>
-      <span class="global-label" onclick="setGlobalStage(4)">5. 外角性質</span>
-      <span class="global-label" onclick="setGlobalStage(5)">6. 挑戰小測驗</span>
+  <!-- Bottom: Presentation Slide Controls and Navigation -->
+  <footer class="slide-nav-container">
+    <div class="slide-nav-wrapper">
+      <button class="slide-nav-btn" id="btn-prev-slide" onclick="prevSlide()">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+        上一頁
+      </button>
+      
+      <div class="slide-indicators">
+        <span class="slide-dot active" onclick="setGlobalStage(0)" title="1. 課綱總覽"></span>
+        <span class="slide-dot" onclick="setGlobalStage(1)" title="2. 三角不等式"></span>
+        <span class="slide-dot" onclick="setGlobalStage(2)" title="3. 等腰三角形"></span>
+        <span class="slide-dot" onclick="setGlobalStage(3)" title="4. 大角對大邊"></span>
+        <span class="slide-dot" onclick="setGlobalStage(4)" title="5. 外角性質"></span>
+        <span class="slide-dot" onclick="setGlobalStage(5)" title="6. 挑戰小測驗"></span>
+      </div>
+      
+      <button class="slide-nav-btn" id="btn-next-slide" onclick="nextSlide()">
+        下一頁
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+      </button>
     </div>
   </footer>
 

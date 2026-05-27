@@ -4,12 +4,14 @@ let stage0AnimId = null;
 let isDraggingS3Vertex = false;
 
 // --- DOM Elements ---
-const globalStageSlider = document.getElementById('global-stage-slider');
-const globalLabels = document.querySelectorAll('.global-label');
 const stageBadge = document.getElementById('current-stage-badge');
 const canvasTitle = document.getElementById('canvas-dynamic-title');
 const svgDrawGroup = document.getElementById('svg-draw-group');
 const geometrySvg = document.getElementById('geometry-svg');
+
+const btnPrev = document.getElementById('btn-prev-slide');
+const btnNext = document.getElementById('btn-next-slide');
+const slideDots = document.querySelectorAll('.slide-dot');
 
 // Stage view containers
 const stageViews = [
@@ -29,9 +31,13 @@ window.addEventListener('DOMContentLoaded', () => {
 
 // Setup all control event listeners
 function setupEventListeners() {
-  // Global slider
-  globalStageSlider.addEventListener('input', (e) => {
-    setStage(parseInt(e.target.value));
+  // Presentation Controls: keyboard navigation (Arrow keys)
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'Right') {
+      nextSlide();
+    } else if (e.key === 'ArrowLeft' || e.key === 'Left') {
+      prevSlide();
+    }
   });
 
   // Stage 1 sliders (Triangle Inequality)
@@ -93,9 +99,21 @@ function setupEventListeners() {
   window.addEventListener('touchend', stopS3Drag);
 }
 
-// Set global active stage
+// --- Slide Switch Functions ---
+function prevSlide() {
+  if (currentStage > 0) {
+    setStage(currentStage - 1);
+  }
+}
+
+function nextSlide() {
+  if (currentStage < 5) {
+    setStage(currentStage + 1);
+  }
+}
+
+// Set global active stage (called by dots click and button click)
 function setGlobalStage(idx) {
-  globalStageSlider.value = idx;
   setStage(idx);
 }
 
@@ -113,12 +131,22 @@ function setStage(stageIdx) {
   stageBadge.innerText = stageNames[stageIdx];
   canvasTitle.innerText = "幾何動態模擬畫布 - " + stageNames[stageIdx].split('：')[1];
 
-  // Update slider label active class
-  globalLabels.forEach((label, idx) => {
+  // Disable Prev/Next at boundaries
+  btnPrev.disabled = (stageIdx === 0);
+  btnNext.disabled = (stageIdx === 5);
+
+  // Update dot indicators active class
+  slideDots.forEach((dot, idx) => {
     if (idx === stageIdx) {
-      label.classList.add('active');
+      dot.classList.add('active');
+      // Alternate color on some slides for aesthetics
+      if (idx % 2 !== 0) {
+        dot.classList.add('active-purple');
+      } else {
+        dot.classList.remove('active-purple');
+      }
     } else {
-      label.classList.remove('active');
+      dot.classList.remove('active', 'active-purple');
     }
   });
 
@@ -379,13 +407,10 @@ function renderStage1() {
     
   } else {
     // Invalid Case: segments lay flat or swing unsuccessfully
-    // Let's render side a swinging flat from B, side b swinging flat from C
-    // To make it educational, we render them at an angled "attempting to reach" state!
     let thetaB = 0; // flat
     let thetaC = Math.PI; // flat
     
     if (sideA + sideB <= sideC) {
-      // Too short: angle them slightly up (15 degrees) to show they cannot reach
       thetaB = -15 * Math.PI / 180;
       thetaC = 195 * Math.PI / 180;
     }
@@ -436,10 +461,9 @@ function renderStage2() {
   const apexAngle = parseInt(document.getElementById('slider-s2-angle').value);
   const legLength = parseInt(document.getElementById('slider-s2-leg').value);
   
-  // Apex angle A, base angles B and C are equal: (180 - A) / 2
+  // Apex angle A, base angles B and C are equal
   const baseAngle = (180 - apexAngle) / 2;
   
-  // Calculate coordinates with Apex A at center top (200, 140)
   const ax = 200;
   const ay = 150;
   
@@ -462,12 +486,10 @@ function renderStage2() {
   drawLine(bx, by, cx, cy, 'var(--text-muted)', 2);
   
   // Draw Congruence Ticks (Geometry Equal Ticks)
-  // Midpoints of legs
   const midABx = (ax + bx) / 2;
   const midABy = (ay + by) / 2;
   const midACx = (ax + cx) / 2;
   const midACy = (ay + cy) / 2;
-  // Tick angle perpendicular to legs
   const angAB = Math.atan2(by - ay, bx - ax) + Math.PI/2;
   const angAC = Math.atan2(cy - ay, cx - ax) + Math.PI/2;
   
@@ -479,11 +501,6 @@ function renderStage2() {
 
   // Draw angle arcs for bottom angles (B and C)
   const bArc = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  const startAngB = -apexAngle/2 - baseAngle;
-  const endAngB = -apexAngle/2;
-  
-  // Draw base angle arcs
-  // Angle B arc: centered at B, swept from base BC up towards AB
   const radAB = Math.atan2(ay - by, ax - bx);
   const angABDeg = radAB * 180 / Math.PI;
   bArc.setAttribute('d', getAngleArcPath(bx, by, 30, angABDeg, 0));
@@ -492,7 +509,6 @@ function renderStage2() {
   bArc.setAttribute('fill', 'rgba(168, 85, 247, 0.15)');
   svgDrawGroup.appendChild(bArc);
   
-  // Angle C arc: centered at C
   const cArc = document.createElementNS('http://www.w3.org/2000/svg', 'path');
   const radAC = Math.atan2(ay - cy, ax - cx);
   const angACDeg = radAC * 180 / Math.PI;
@@ -541,16 +557,15 @@ function renderStage3() {
   const pC = { x: cx, y: cy };
   
   // Calculate Side Lengths
-  const side_a = Math.round(Math.hypot(cx - bx, cy - by)); // Side BC (opposite A)
-  const side_b = Math.round(Math.hypot(ax - cx, ay - cy)); // Side AC (opposite B)
-  const side_c = Math.round(Math.hypot(ax - bx, ay - by)); // Side AB (opposite C)
+  const side_a = Math.round(Math.hypot(cx - bx, cy - by)); // Side BC
+  const side_b = Math.round(Math.hypot(ax - cx, ay - cy)); // Side AC
+  const side_c = Math.round(Math.hypot(ax - bx, ay - by)); // Side AB
   
   // Calculate Angles
   const angle_A = calculateAngle(pB, pA, pC);
   const angle_B = calculateAngle(pA, pB, pC);
   const angle_C = 180 - angle_A - angle_B;
   
-  // Map and sort sizes to assign Tier colors
   const sides = [
     { label: 'a', val: side_a, elemId: 'badge-side-a', oppAngle: 'A' },
     { label: 'b', val: side_b, elemId: 'badge-side-b', oppAngle: 'B' },
@@ -563,18 +578,15 @@ function renderStage3() {
     { label: 'C', val: angle_C, elemId: 'badge-angle-c', oppSide: 'c' }
   ];
   
-  // Sort descending
   const sortedSides = [...sides].sort((x, y) => y.val - x.val);
   const sortedAngles = [...angles].sort((x, y) => y.val - x.val);
   
-  // Tiers lookup
   const getTierClass = (rank) => {
     if (rank === 0) return { name: '最大', style: 'badge-largest', color: 'var(--tier-largest)' };
     if (rank === 1) return { name: '中', style: 'badge-medium', color: 'var(--tier-medium)' };
     return { name: '最小', style: 'badge-smallest', color: 'var(--tier-smallest)' };
   };
   
-  // Style and text color updates for elements
   sides.forEach(s => {
     const rank = sortedSides.findIndex(ss => ss.label === s.label);
     const tier = getTierClass(rank);
@@ -593,15 +605,11 @@ function renderStage3() {
     ang.color = tier.color;
   });
 
-  // Render Triangle paths dynamically with tier colored borders!
-  // AB border
+  // Render Triangle paths dynamically with tier colored borders
   drawLine(ax, ay, bx, by, sides.find(s => s.label === 'c').color, 4);
-  // AC border
   drawLine(ax, ay, cx, cy, sides.find(s => s.label === 'b').color, 4);
-  // BC border
   drawLine(bx, by, cx, cy, sides.find(s => s.label === 'a').color, 4);
   
-  // Fill inside polygon semi-transparently
   const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
   polygon.setAttribute('points', `${ax},${ay} ${bx},${by} ${cx},${cy}`);
   polygon.setAttribute('fill', 'rgba(255,255,255,0.02)');
@@ -609,26 +617,22 @@ function renderStage3() {
   svgDrawGroup.appendChild(polygon);
 
   // Render glowing Angle Arc highlights
-  // Arc B
   const radBC = Math.atan2(cy - by, cx - bx);
   const radBA = Math.atan2(ay - by, ax - bx);
   const pathB = getAngleArcPath(bx, by, 32, radBC*180/Math.PI, radBA*180/Math.PI);
   drawPath(pathB, angles.find(a => a.label === 'B').color, 'rgba(255,255,255,0.05)', 3);
 
-  // Arc C
   const radCA = Math.atan2(ay - cy, ax - cx);
   const radCB = Math.atan2(by - cy, bx - cx);
   const pathC = getAngleArcPath(cx, cy, 32, radCA*180/Math.PI, radCB*180/Math.PI);
   drawPath(pathC, angles.find(a => a.label === 'C').color, 'rgba(255,255,255,0.05)', 3);
 
-  // Arc A
   const radAC = Math.atan2(cy - ay, cx - ax);
   const radAB = Math.atan2(by - ay, bx - ax);
-  // Swap order if crossed
   const pathA = getAngleArcPath(ax, ay, 32, radAC*180/Math.PI, radAB*180/Math.PI);
   drawPath(pathA, angles.find(a => a.label === 'A').color, 'rgba(255,255,255,0.05)', 3);
 
-  // Labels and coordinates
+  // Labels
   drawText(bx - 12, by + 12, 'B');
   drawText(cx + 12, cy + 12, 'C');
   drawText(ax, ay - 18, 'A');
@@ -656,23 +660,20 @@ function renderStage4() {
   const angleC_int = 180 - angleA - angleB;
   const angleC_ext = angleA + angleB;
   
-  // Vertices coords
   const bx = 80;
   const by = 260;
   const cx = 260;
   const cy = 260;
   
-  // Draw extended base ray: B -> C -> D
   const dx = 370;
   const dy = 260;
   
-  // Calculate Apex coordinates A using Sine Rule
   const baseLen = cx - bx;
   const radA = angleA * Math.PI / 180;
   const radB = angleB * Math.PI / 180;
   const radC = angleC_int * Math.PI / 180;
   
-  const side_c = baseLen * Math.sin(radC) / Math.sin(radA); // leg opposite C
+  const side_c = baseLen * Math.sin(radC) / Math.sin(radA);
   const ax = bx + side_c * Math.cos(radB);
   const ay = by - side_c * Math.sin(radB);
   
@@ -698,17 +699,17 @@ function renderStage4() {
   drawLine(bx, by, ax, ay, 'var(--accent-blue)', 3);
   drawLine(cx, cy, ax, ay, 'var(--text-secondary)', 2.5);
   
-  // Draw neon Angle B arc
+  // Angle B arc
   const pathB = getAngleArcPath(bx, by, 30, -angleB, 0);
   drawPath(pathB, 'var(--accent-blue)', 'rgba(59, 130, 246, 0.15)', 3, 'angle-b-arc');
   
-  // Draw neon Angle A arc
+  // Angle A arc
   const radAB = Math.atan2(by - ay, bx - ax);
   const radAC = Math.atan2(cy - ay, cx - ax);
   const pathA = getAngleArcPath(ax, ay, 28, radAC*180/Math.PI, radAB*180/Math.PI);
   drawPath(pathA, 'var(--accent-purple)', 'rgba(168, 85, 247, 0.15)', 3, 'angle-a-arc');
   
-  // Draw neon Exterior Angle C arc
+  // Exterior Angle C arc
   const radCA = Math.atan2(ay - cy, ax - cx);
   const pathC_ext = getAngleArcPath(cx, cy, 32, radCA*180/Math.PI, 0);
   drawPath(pathC_ext, '#fb7185', 'rgba(251, 113, 133, 0.15)', 3.5, 'angle-c-ext-arc');
@@ -735,7 +736,6 @@ function animateExteriorAngleCollage() {
   const angleB = parseInt(document.getElementById('slider-s4-angB').value);
   const angleA = parseInt(document.getElementById('slider-s4-angA').value);
   
-  // Recalculate geometric specs
   const bx = 80, by = 260;
   const cx = 260, cy = 260;
   const baseLen = cx - bx;
@@ -747,7 +747,6 @@ function animateExteriorAngleCollage() {
   const ax = bx + side_c * Math.cos(radB);
   const ay = by - side_c * Math.sin(radB);
   
-  // Clean up any existing peeled angles in SVG first
   const oldPeeled = svgDrawGroup.querySelectorAll('.peeled-angle');
   oldPeeled.forEach(el => el.remove());
   
@@ -760,15 +759,12 @@ function animateExteriorAngleCollage() {
   sectorB.setAttribute('stroke-width', '2.5');
   sectorB.setAttribute('class', 'peeled-angle');
   
-  // Initial transform: sitting on vertex B
   sectorB.style.transform = `translate(${bx}px, ${by}px)`;
   svgDrawGroup.appendChild(sectorB);
   
   // 2. Create a cloned angle sector A to fly to C
   const sectorA = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  const radAB = Math.atan2(by - ay, bx - ax);
   const radAC = Math.atan2(cy - ay, cx - ax);
-  // Normalize angle range for drawing arc
   const pathA = getAngleArcPath(0, 0, 28, -angleA, 0);
   sectorA.setAttribute('d', pathA + ' L 0 0 Z');
   sectorA.setAttribute('fill', 'rgba(168, 85, 247, 0.45)');
@@ -776,20 +772,14 @@ function animateExteriorAngleCollage() {
   sectorA.setAttribute('stroke-width', '2.5');
   sectorA.setAttribute('class', 'peeled-angle');
   
-  // Initial transform: sitting on apex A
   sectorA.style.transform = `translate(${ax}px, ${ay}px) rotate(${radAC * 180 / Math.PI + 180}deg)`;
   svgDrawGroup.appendChild(sectorA);
   
-  // Force a browser reflow/repaint to ensure transitions work smoothly
   sectorB.getBoundingClientRect();
   sectorA.getBoundingClientRect();
   
-  // 3. Trigger flight animation using CSS transitions!
-  // Sector B flies to sit flush on CD at vertex C (rotation = 0 because it's on CD)
+  // 3. Trigger flight animation
   sectorB.style.transform = `translate(${cx}px, ${cy}px) rotate(0deg)`;
-  
-  // Sector A flies to sit adjacent to B at vertex C (starts rotated above B)
-  // Since B occupies -angleB to 0, A will sit from -angleA - angleB to -angleB
   sectorA.style.transform = `translate(${cx}px, ${cy}px) rotate(${-angleB}deg)`;
 }
 
@@ -797,7 +787,6 @@ function animateExteriorAngleCollage() {
 function renderStage5() {
   svgDrawGroup.innerHTML = '';
   
-  // Draw a cute dynamic mascot or a trophy in SVG to reward the user!
   const trophy = document.createElementNS('http://www.w3.org/2000/svg', 'g');
   trophy.setAttribute('transform', 'translate(100, 100)');
   
@@ -845,12 +834,10 @@ function renderStage5() {
   
   svgDrawGroup.appendChild(trophy);
   
-  // Star decorations
   drawQuizStar(200, 80, 8);
   drawQuizStar(150, 120, 6);
   drawQuizStar(250, 130, 7);
   
-  // Add linear gold gradient for the cup
   if (!document.getElementById('cup-gold-grad')) {
     const defs = geometrySvg.querySelector('defs');
     const grad = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
@@ -897,8 +884,7 @@ function drawQuizStar(cx, cy, r) {
 
 // --- Quiz Validation Mechanism ---
 function checkQuiz(qIdx, optionIdx, btnElement) {
-  // Correct answers index
-  const answers = { 1: 1, 2: 2, 3: 1 }; // Q1: B(7), Q2: C(AC), Q3: B(70)
+  const answers = { 1: 1, 2: 2, 3: 1 };
   
   const correctOpt = answers[qIdx];
   const optionsContainer = btnElement.parentNode;
@@ -906,7 +892,6 @@ function checkQuiz(qIdx, optionIdx, btnElement) {
   const expCard = document.getElementById(`exp-q${qIdx}`);
   
   buttons.forEach((btn, idx) => {
-    // Disable further clicking
     btn.disabled = true;
     if (idx === correctOpt) {
       btn.classList.add('correct');
@@ -915,17 +900,14 @@ function checkQuiz(qIdx, optionIdx, btnElement) {
     }
   });
   
-  // Show explanation
   expCard.style.display = 'block';
   
-  // Little sparkle animation inside the canvas
   if (optionIdx === correctOpt) {
     createCanvasConfetti();
   }
 }
 
 function createCanvasConfetti() {
-  // Create quick sparkling star items inside SVG and delete them after 1s
   for (let i = 0; i < 12; i++) {
     const rx = Math.random() * 200 + 100;
     const ry = Math.random() * 200 + 80;
@@ -939,7 +921,6 @@ function createCanvasConfetti() {
     starGlow.setAttribute('style', 'transition: all 1s ease-out; opacity: 1;');
     svgDrawGroup.appendChild(starGlow);
     
-    // Animate out
     setTimeout(() => {
       starGlow.setAttribute('r', '20');
       starGlow.style.opacity = '0';

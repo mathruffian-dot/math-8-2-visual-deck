@@ -995,7 +995,7 @@ function animateExteriorAngleCollage() {
   
   // 2. Create a cloned angle sector A to fly to C
   const sectorA = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  const radAC = Math.atan2(cy - ay, cx - ax);
+  const radAB = Math.atan2(by - ay, bx - ax);
   const pathA = getAngleArcPath(0, 0, 28, -angleA, 0);
   sectorA.setAttribute('d', pathA + ' L 0 0 Z');
   sectorA.setAttribute('fill', 'rgba(168, 85, 247, 0.45)');
@@ -1003,7 +1003,7 @@ function animateExteriorAngleCollage() {
   sectorA.setAttribute('stroke-width', '2.5');
   sectorA.setAttribute('class', 'peeled-angle');
   
-  sectorA.style.transform = `translate(${ax}px, ${ay}px) rotate(${radAC * 180 / Math.PI + 180}deg)`;
+  sectorA.style.transform = `translate(${ax}px, ${ay}px) rotate(${radAB * 180 / Math.PI}deg)`;
   if (svgDrawGroup) svgDrawGroup.appendChild(sectorA);
   
   sectorB.getBoundingClientRect();

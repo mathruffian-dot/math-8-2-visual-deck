@@ -767,7 +767,7 @@ input[type="range"]::-moz-range-thumb:hover {
 
 /* Exterior angle arc peel off/align animation classes */
 .peeled-angle {
-  transform-origin: center;
+  transform-origin: 0px 0px;
   transition: transform 1.2s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.5s ease;
   pointer-events: none;
 }

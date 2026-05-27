@@ -1,0 +1,12 @@
+# Exclude large textbook PDF directories
+01_114國中數學2下課本PDF/
+02_114國中數學2下習作PDF/
+03_114國中數學2下備課PDF/
+04_114國中數學2下習教PDF/
+05_114國中數學2下練習本PDF/
+06_114國中數學2下附錄本PDF/
+*.pdf
+
+# System files
+.DS_Store
+Thumbs.db

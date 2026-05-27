@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>國中數學八下：三角形的邊角關係 | 108 課綱 S-8-8 互動幾何動畫</title>
+  <meta name="description" content="專為國中八年級下學期數學設計的三角形邊角關係互動式網頁。透過滑桿與動態幾何動畫，漸進式探索三角不等式、等腰三角形、大角對大邊與三角形外角性質。">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="logo-section">
+      <h1>三角形的邊角關係 <span>108課綱 S-8-8</span></h1>
+    </div>
+    <div class="stage-badge" id="current-stage-badge">導覽：單元大綱</div>
+  </header>
+
+  <!-- Main Workspace -->
+  <main>
+    <!-- Left: Explanation and Interactive Controls -->
+    <section class="control-panel">
+      
+      <!-- Stage 0: Unit Overview & Curriculum Goals -->
+      <div class="concept-view glass-card active" id="view-stage-0">
+        <h2>單元大綱與學習目標</h2>
+        <h3>探索幾何的基本骨架</h3>
+        <p class="concept-description">
+          在國中數學八下「三角形的邊角關係」單元中，我們將一起探索三角形邊長與內角、外角之間的約束機制。
+          這不僅是幾何學最核心的定理，也是九年級幾何推理與證明的基石。
+        </p>
+        
+        <div class="curriculum-grid">
+          <div class="curriculum-card">
+            <span class="curriculum-badge">S-8-8 學習內容</span>
+            <h4>三角形的基本性質</h4>
+            <p>理解等腰三角形兩底角相等；理解三角形兩邊和大於第三邊；在非等腰三角形中，理解大角對大邊、大邊對大角的對應關係；理解外角性質。</p>
+          </div>
+          <div class="curriculum-card">
+            <span class="curriculum-badge">s-IV-1 學習表現</span>
+            <h4>空間與形狀的推論</h4>
+            <p>能理解常用幾何形體的定義、符號、性質，並應用於幾何問題的解題，培養嚴謹的邏輯論證思維。</p>
+          </div>
+        </div>
+
+        <div class="math-definition">
+          <strong>💡 拖拉滑桿來開始旅程：</strong><br>
+          使用頁面下方的「全域進度滑桿」，您將可循序漸進解鎖四大幾何核心重點，並可親自動手調整模擬器來驗證定理！
+        </div>
+      </div>
+
+      <!-- Stage 1: Triangle Inequality -->
+      <div class="concept-view glass-card" id="view-stage-1">
+        <h2>重點 1：三角不等式 (Triangle Inequality)</h2>
+        <h3>任意兩邊之和大於第三邊</h3>
+        <p class="concept-description">
+          是不是任意給定三根竹籤，就一定可以排出三角形呢？答案是否定的。
+          在二維平面上，三條線段要首尾相接拼成一個封閉圖形，必須滿足「任意兩邊之長大於第三邊」的約束。
+        </p>
+
+        <div class="math-definition">
+          <strong>📐 數學核心定理：</strong><br>
+          設三角形的三邊長分別為 $a$、$b$、$c$，則必滿足：<br>
+          ❶ $a + b > c$ &nbsp;&nbsp;&nbsp;&nbsp; ❷ $b + c > a$ &nbsp;&nbsp;&nbsp;&nbsp; ❸ $a + c > b$<br>
+          <em>同理可推得：任意兩邊之差的絕對值必小於第三邊。</em>
+        </div>
+
+        <div class="interactive-controls">
+          <div class="control-group">
+            <div class="control-label-row">
+              <span class="label-name">底邊長 c</span>
+              <span class="label-val" id="val-s1-c">180</span>
+            </div>
+            <input type="range" id="slider-s1-c" min="80" max="250" value="180">
+          </div>
+          <div class="control-group">
+            <div class="control-label-row">
+              <span class="label-name">左側邊長 a</span>
+              <span class="label-val" id="val-s1-a">120</span>
+            </div>
+            <input type="range" id="slider-s1-a" min="40" max="200" value="120">
+          </div>
+          <div class="control-group">
+            <div class="control-label-row">
+              <span class="label-name">右側邊長 b</span>
+              <span class="label-val" id="val-s1-b">100</span>
+            </div>
+            <input type="range" id="slider-s1-b" min="40" max="200" value="100">
+          </div>
+        </div>
+
+        <div id="triangle-inequality-status" class="info-pill" style="margin-top: 0.5rem; justify-content: center; width: 100%;">
+          狀態確認中...
+        </div>
+      </div>
+
+      <!-- Stage 2: Isosceles Triangle -->
+      <div class="concept-view glass-card" id="view-stage-2">
+        <h2>重點 2：等腰三角形性質 (Isosceles Triangle)</h2>
+        <h3>等邊對等角 ＆ 等角對等邊</h3>
+        <p class="concept-description">
+          等腰三角形是幾何中極具對稱美的圖形。當一個三角形中有兩條邊相等時，這兩條腰所夾的對角（底角）也必定相等。
+          反過來說，如果三角形中有兩個內角相等，則它們的對邊也必定相等。
+        </p>
+
+        <div class="math-definition">
+          <strong>📐 數學核心定理：</strong><br>
+          若線段 $AB = AC$，則其對角 $\angle B = \angle C$。<br>
+          此性質稱為<strong>「等邊對等角」</strong>。反向論證<strong>「等角對等邊」</strong>亦成立。
+        </div>
+
+        <div class="interactive-controls">
+          <div class="control-group">
+            <div class="control-label-row">
+              <span class="label-name">頂角 A 大小</span>
+              <span class="label-val" id="val-s2-angle">60°</span>
+            </div>
+            <input type="range" id="slider-s2-angle" min="15" max="150" value="60">
+          </div>
+          <div class="control-group">
+            <div class="control-label-row">
+              <span class="label-name">腰長 a (AB 與 AC)</span>
+              <span class="label-val" id="val-s2-leg">150</span>
+            </div>
+            <input type="range" id="slider-s2-leg" min="100" max="200" value="150">
+          </div>
+        </div>
+      </div>
+
+      <!-- Stage 3: Larger Angle / Larger Side -->
+      <div class="concept-view glass-card" id="view-stage-3">
+        <h2>重點 3：大角對大邊，大邊對大角</h2>
+        <h3>三角形內邊角不等關係</h3>
+        <p class="concept-description">
+          在同一個三角形中，如果三邊長不相等，那麼邊與角之間有著絕對的對應關係：
+          較長的那條邊，它所面對的那個角也必定是最大的；較大的那個角，它所對應的邊也必定是最長的。
+        </p>
+
+        <div class="math-definition">
+          <strong>📐 數學核心定理：</strong><br>
+          在 $\triangle ABC$ 中，若 $a > b > c$，則其對角必滿足 $\angle A > \angle B > \angle C$。<br>
+          <em>此定理僅適用於「同一個三角形內」或「等大三角形之間」的邊角比較。</em>
+        </div>
+
+        <div class="interactive-controls">
+          <div class="control-group">
+            <div class="control-label-row">
+              <span class="label-name">調整頂點 A 的水平位置</span>
+              <span class="label-val" id="val-s3-x">120</span>
+            </div>
+            <input type="range" id="slider-s3-x" min="10" max="290" value="120">
+          </div>
+          <div class="control-group">
+            <div class="control-label-row">
+              <span class="label-name">調整頂點 A 的垂直高度</span>
+              <span class="label-val" id="val-s3-y">150</span>
+            </div>
+            <input type="range" id="slider-s3-y" min="50" max="250" value="150">
+          </div>
+        </div>
+
+        <div class="data-table-card">
+          <div class="data-grid">
+            <div class="data-column">
+              <h4>邊長大小 (對邊)</h4>
+              <div class="data-row"><span>邊 a (BC)</span> <span id="badge-side-a" class="data-badge">10</span></div>
+              <div class="data-row"><span>邊 b (AC)</span> <span id="badge-side-b" class="data-badge">10</span></div>
+              <div class="data-row"><span>邊 c (AB)</span> <span id="badge-side-c" class="data-badge">10</span></div>
+            </div>
+            <div class="data-column">
+              <h4>對角大小</h4>
+              <div class="data-row"><span>角 A</span> <span id="badge-angle-a" class="data-badge">10</span></div>
+              <div class="data-row"><span>角 B</span> <span id="badge-angle-b" class="data-badge">10</span></div>
+              <div class="data-row"><span>角 C</span> <span id="badge-angle-c" class="data-badge">10</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stage 4: Exterior Angle Theorem -->
+      <div class="concept-view glass-card" id="view-stage-4">
+        <h2>重點 4：外角性質 (Exterior Angle Property)</h2>
+        <h3>外角等於內對角之和</h3>
+        <p class="concept-description">
+          將三角形的任意一邊向外延伸，就可以得到外角。
+          三角形的任意一個外角，會剛好等於與它不相鄰的兩個內角（內對角）相加之和，且必定大於任何一個單一內對角。
+        </p>
+
+        <div class="math-definition">
+          <strong>📐 數學核心定理：</strong><br>
+          在 $\triangle ABC$ 中，延長 $BC$ 邊至 $D$，形成外角 $\angle ACD$，則：<br>
+          ❶ $\angle ACD = \angle A + \angle B$<br>
+          ❷ $\angle ACD > \angle A$ &nbsp;&nbsp;且&nbsp;&nbsp; $\angle ACD > \angle B$
+        </div>
+
+        <div class="interactive-controls">
+          <div class="control-group">
+            <div class="control-label-row">
+              <span class="label-name">頂角 A 大小</span>
+              <span class="label-val" id="val-s4-angA">50°</span>
+            </div>
+            <input type="range" id="slider-s4-angA" min="20" max="110" value="50">
+          </div>
+          <div class="control-group">
+            <div class="control-label-row">
+              <span class="label-name">底角 B 大小</span>
+              <span class="label-val" id="val-s4-angB">60°</span>
+            </div>
+            <input type="range" id="slider-s4-angB" min="20" max="110" value="60">
+          </div>
+          
+          <button id="btn-animate-exterior" class="btn-primary">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+            開始角度拼貼動畫
+          </button>
+        </div>
+      </div>
+
+      <!-- Stage 5: Quiz -->
+      <div class="concept-view glass-card" id="view-stage-5">
+        <h2>重點 5：挑戰小測驗 (Interactive Quiz)</h2>
+        <h3>檢驗您的學習表現</h3>
+        <p class="concept-description">
+          恭喜您完成了所有重點概念的探索！請花幾分鐘完成下列互動挑戰，測試自己是否完全掌握了「三角形的邊角關係」。
+        </p>
+
+        <div class="quiz-container">
+          <!-- Question 1 -->
+          <div class="quiz-card" id="quiz-q1">
+            <div class="quiz-question">Q1. 設三角形的三邊長為 4、9、x，且 x 為整數，則 x 有幾種可能？</div>
+            <div class="quiz-options">
+              <button class="quiz-btn" onclick="checkQuiz(1, 0, this)">A) 5 種</button>
+              <button class="quiz-btn" onclick="checkQuiz(1, 1, this)">B) 7 種</button>
+              <button class="quiz-btn" onclick="checkQuiz(1, 2, this)">C) 9 種</button>
+              <button class="quiz-btn" onclick="checkQuiz(1, 3, this)">D) 11 種</button>
+            </div>
+            <div class="quiz-explanation" id="exp-q1">
+              <strong>解析：</strong>根據三角不等式，兩邊之差 &lt; 第三邊 &lt; 兩邊之和。<br>
+              故 $9 - 4 < x < 9 + 4 \implies 5 < x < 13$。<br>
+              因為 x 為整數，符合的有 $6, 7, 8, 9, 10, 11, 12$ 共 <strong>7 種</strong>，故選 B。
+            </div>
+          </div>
+
+          <!-- Question 2 -->
+          <div class="quiz-card" id="quiz-q2">
+            <div class="quiz-question">Q2. 在 △ABC 中，已知 ∠A = 40°，∠B = 80°，則下列哪條邊最長？</div>
+            <div class="quiz-options">
+              <button class="quiz-btn" onclick="checkQuiz(2, 0, this)">A) 邊 AB</button>
+              <button class="quiz-btn" onclick="checkQuiz(2, 1, this)">B) 邊 BC</button>
+              <button class="quiz-btn" onclick="checkQuiz(2, 2, this)">C) 邊 AC</button>
+              <button class="quiz-btn" onclick="checkQuiz(2, 3, this)">D) 三邊一樣長</button>
+            </div>
+            <div class="quiz-explanation" id="exp-q2">
+              <strong>解析：</strong>首先求出第三個角 ∠C = 180° - 40° - 80° = 60°。<br>
+              故三個角的大小順序為 ∠B (80°) > ∠C (60°) > ∠A (40°)。<br>
+              根據「大角對大邊」，最大的角 ∠B 所對的邊 <strong>AC 邊最長</strong>，故選 C。
+            </div>
+          </div>
+
+          <!-- Question 3 -->
+          <div class="quiz-card" id="quiz-q3">
+            <div class="quiz-question">Q3. 三角形一外角為 115°，且此角的一內對角為 45°，則另一內對角的大小為何？</div>
+            <div class="quiz-options">
+              <button class="quiz-btn" onclick="checkQuiz(3, 0, this)">A) 60°</button>
+              <button class="quiz-btn" onclick="checkQuiz(3, 1, this)">B) 70°</button>
+              <button class="quiz-btn" onclick="checkQuiz(3, 2, this)">C) 80°</button>
+              <button class="quiz-btn" onclick="checkQuiz(3, 3, this)">D) 135°</button>
+            </div>
+            <div class="quiz-explanation" id="exp-q3">
+              <strong>解析：</strong>根據「外角等於兩內對角之和」，可設另一內對角為 x°。<br>
+              則 $45° + x° = 115° \implies x° = 70°$。故選 B。
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Right: Dynamic Graphical SVG Canvas Area -->
+    <section class="canvas-panel">
+      <div class="canvas-header">
+        <div class="canvas-title" id="canvas-dynamic-title">幾何動態模擬畫布</div>
+        <div class="info-pill" id="canvas-indicator">
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h-2v-2h4v8zm0-10h-2V5h2v2z"/></svg>
+          動態即時渲染
+        </div>
+      </div>
+      <div class="canvas-body">
+        <!-- SVG viewport for triangles -->
+        <svg id="geometry-svg" viewBox="0 0 400 400" preserveAspectRatio="xMidYMid meet">
+          <!-- Grids or background rings inside SVG -->
+          <defs>
+            <radialGradient id="ring-gradient" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="rgba(56, 189, 248, 0.05)" />
+              <stop offset="100%" stop-color="rgba(11, 15, 25, 0)" />
+            </radialGradient>
+            <!-- Marker for line arrows -->
+            <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b" />
+            </marker>
+          </defs>
+          
+          <rect width="100%" height="100%" fill="url(#ring-gradient)" />
+          
+          <!-- Helper Grid Lines -->
+          <g stroke="rgba(255,255,255,0.03)" stroke-width="1">
+            <line x1="0" y1="200" x2="400" y2="200" />
+            <line x1="200" y1="0" x2="200" y2="400" />
+            <circle cx="200" cy="200" r="100" fill="none" />
+            <circle cx="200" cy="200" r="150" fill="none" />
+          </g>
+
+          <!-- Core geometry drawings (rendered and updated dynamically via app.js) -->
+          <g id="svg-draw-group"></g>
+        </svg>
+      </div>
+    </section>
+  </main>
+
+  <!-- Bottom: Global Slider and Navigation -->
+  <footer class="global-slider-container">
+    <div class="global-slider-wrapper">
+      <input type="range" id="global-stage-slider" min="0" max="5" value="0" step="1">
+    </div>
+    <div class="global-slider-labels">
+      <span class="global-label active" onclick="setGlobalStage(0)">1. 課綱總覽</span>
+      <span class="global-label" onclick="setGlobalStage(1)">2. 三角不等式</span>
+      <span class="global-label" onclick="setGlobalStage(2)">3. 等腰三角形</span>
+      <span class="global-label" onclick="setGlobalStage(3)">4. 大角對大邊</span>
+      <span class="global-label" onclick="setGlobalStage(4)">5. 外角性質</span>
+      <span class="global-label" onclick="setGlobalStage(5)">6. 挑戰小測驗</span>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

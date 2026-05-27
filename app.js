@@ -9,14 +9,15 @@ const canvasTitle = document.getElementById('canvas-dynamic-title');
 const svgDrawGroup = document.getElementById('svg-draw-group');
 const geometrySvg = document.getElementById('geometry-svg');
 
-// Stage view containers
+// Stage view containers (Expanded to 7 stages)
 const stageViews = [
   document.getElementById('view-stage-0'),
   document.getElementById('view-stage-1'),
   document.getElementById('view-stage-2'),
   document.getElementById('view-stage-3'),
   document.getElementById('view-stage-4'),
-  document.getElementById('view-stage-5')
+  document.getElementById('view-stage-5'),
+  document.getElementById('view-stage-6')
 ];
 
 // --- Initialization ---
@@ -72,13 +73,17 @@ function setupEventListeners() {
   if (s3x) s3x.addEventListener('input', updateS3);
   if (s3y) s3y.addEventListener('input', updateS3);
 
-  // Stage 4 sliders (Exterior Angle)
+  // Stage 4 Folding Proof Button
+  const btnAnimateFolding = document.getElementById('btn-animate-folding');
+  if (btnAnimateFolding) btnAnimateFolding.addEventListener('click', startFoldingAnimation);
+
+  // Stage 5 sliders (Exterior Angle)
   const s4angA = document.getElementById('slider-s4-angA');
   const s4angB = document.getElementById('slider-s4-angB');
   const updateS4 = () => {
     document.getElementById('val-s4-angA').innerText = s4angA.value + '°';
     document.getElementById('val-s4-angB').innerText = s4angB.value + '°';
-    renderStage4();
+    renderStage5();
   };
   if (s4angA) s4angA.addEventListener('input', updateS4);
   if (s4angB) s4angB.addEventListener('input', updateS4);
@@ -105,9 +110,8 @@ function prevSlide() {
   }
 }
 
-// Global exposure is bound to window at the bottom of the file
 function nextSlide() {
-  if (currentStage < 5) {
+  if (currentStage < 6) { // Expanded limit to 6 (7 slides total)
     setStage(currentStage + 1);
   }
 }
@@ -123,19 +127,31 @@ function setStage(stageIdx) {
     cancelAnimationFrame(stage0AnimId);
     stage0AnimId = null;
   }
+  if (foldingAnimId) {
+    cancelAnimationFrame(foldingAnimId);
+    foldingAnimId = null;
+  }
   
   currentStage = stageIdx;
 
   // Update badges & UI controls
-  const stageNames = ["導覽：學習大綱", "核心一：三角不等式", "核心二：等腰三角形", "核心三：大角對大邊", "核心四：外角定理", "挑戰：學習評量"];
+  const stageNames = [
+    "導覽：學習大綱", 
+    "核心一：三角不等式", 
+    "核心二：等腰三角形", 
+    "核心三：大角對大邊", 
+    "核心四：大邊對大角證明", 
+    "核心五：外角定理", 
+    "挑戰：學習評量"
+  ];
   if (stageBadge) stageBadge.innerText = stageNames[stageIdx];
   if (canvasTitle) canvasTitle.innerText = "幾何動態模擬畫布 - " + stageNames[stageIdx].split('：')[1];
 
-  // Disable Prev/Next at boundaries dynamically to prevent null reference crash
+  // Disable Prev/Next at boundaries
   const btnPrev = document.getElementById('btn-prev-slide');
   const btnNext = document.getElementById('btn-next-slide');
   if (btnPrev) btnPrev.disabled = (stageIdx === 0);
-  if (btnNext) btnNext.disabled = (stageIdx === 5);
+  if (btnNext) btnNext.disabled = (stageIdx === 6);
 
   // Update dot indicators active class
   const slideDots = document.querySelectorAll('.slide-dot');
@@ -154,10 +170,12 @@ function setStage(stageIdx) {
 
   // Switch card views
   stageViews.forEach((view, idx) => {
-    if (idx === stageIdx) {
-      view.classList.add('active');
-    } else {
-      view.classList.remove('active');
+    if (view) {
+      if (idx === stageIdx) {
+        view.classList.add('active');
+      } else {
+        view.classList.remove('active');
+      }
     }
   });
 
@@ -179,10 +197,13 @@ function setStage(stageIdx) {
       renderStage3();
       break;
     case 4:
-      renderStage4();
+      renderStage4FoldingProof(0); // Initialize unfolded (t=0)
       break;
     case 5:
       renderStage5();
+      break;
+    case 6:
+      renderStage6();
       break;
   }
 
@@ -210,7 +231,7 @@ function getAngleArcPath(cx, cy, r, startAngle, endAngle) {
   const x2 = cx + r * Math.cos(endRad);
   const y2 = cy + r * Math.sin(endRad);
   
-  const largeArcFlag = "0"; // 三角形內角與外角皆小於 180 度，恆為 0
+  const largeArcFlag = "0"; // Always 0 for interior triangle angles (< 180 deg)
   const sweepFlag = diff > 0 ? "1" : "0";
   
   return `M ${x1} ${y1} A ${r} ${r} 0 ${largeArcFlag} ${sweepFlag} ${x2} ${y2}`;
@@ -635,8 +656,124 @@ function renderStage3() {
   drawCircle(cx, cy, 5, '#fff', 'var(--text-muted)', 2);
 }
 
-// --- Stage 4: Exterior Angle Theorem ---
-function renderStage4() {
+// --- Stage 4: Folding Proof (NEW) ---
+let foldingAnimId = null;
+
+function renderStage4FoldingProof(t = 0) {
+  if (svgDrawGroup) svgDrawGroup.innerHTML = '';
+  
+  const ax = 280, ay = 140;
+  const bx = 60, by = 280;
+  const cx = 320, cy = 280;
+  const dx = 227, dy = 280; // Crease point on BC
+  const ex = 157, ey = 218; // Congruent point E on AB
+  
+  // Calculate current C_fold coordinates along a lift-fold trajectory
+  const cx_t = (1 - t) * cx + t * ex - 25 * Math.sin(t * Math.PI);
+  const cy_t = (1 - t) * cy + t * ey - 45 * Math.sin(t * Math.PI);
+  
+  // Draw main base triangle ABC (faded)
+  const basePolygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+  basePolygon.setAttribute('points', `${ax},${ay} ${bx},${by} ${cx},${cy}`);
+  basePolygon.setAttribute('fill', 'rgba(255, 255, 255, 0.01)');
+  basePolygon.setAttribute('stroke', 'rgba(255, 255, 255, 0.08)');
+  basePolygon.setAttribute('stroke-width', '2.5');
+  if (svgDrawGroup) svgDrawGroup.appendChild(basePolygon);
+  
+  // Draw segment BD
+  drawLine(bx, by, dx, dy, 'var(--text-muted)', 2);
+  // Draw segment BE
+  drawLine(bx, by, ex, ey, 'var(--text-muted)', 2);
+  
+  // Draw the unfolding part of the triangle (faded right wing)
+  const rightWing = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+  rightWing.setAttribute('points', `${ax},${ay} ${cx},${cy} ${dx},${dy}`);
+  rightWing.setAttribute('fill', 'none');
+  rightWing.setAttribute('stroke', 'rgba(255, 255, 255, 0.08)');
+  rightWing.setAttribute('stroke-width', '2');
+  rightWing.setAttribute('stroke-dasharray', '3, 3');
+  if (svgDrawGroup) svgDrawGroup.appendChild(rightWing);
+  
+  // Draw the folding triangle (AC_foldD) with a nice semi-transparent green/cyan fill
+  const foldingPolygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+  foldingPolygon.setAttribute('points', `${ax},${ay} ${cx_t},${cy_t} ${dx},${dy}`);
+  foldingPolygon.setAttribute('fill', 'rgba(6, 182, 212, 0.12)');
+  foldingPolygon.setAttribute('stroke', 'var(--accent-cyan)');
+  foldingPolygon.setAttribute('stroke-width', '3');
+  if (svgDrawGroup) svgDrawGroup.appendChild(foldingPolygon);
+  
+  // Draw crease line AD
+  drawLine(ax, ay, dx, dy, t > 0.1 ? 'var(--accent-purple)' : 'var(--text-muted)', 2.5, t > 0.1 ? '' : '4, 4');
+  
+  // Draw Angle B (Blue)
+  const radBA = Math.atan2(ay - by, ax - bx);
+  const pathB = getAngleArcPath(bx, by, 28, 0, radBA * 180 / Math.PI);
+  drawPath(pathB, 'var(--accent-blue)', 'rgba(59, 130, 246, 0.15)', 3);
+  drawText(bx + 38, by - 12, 'B', '#60a5fa');
+  
+  // Draw Angle C (Pink, on the folding vertex C_fold!)
+  // Angle C is swept between C_fold -> A and C_fold -> D
+  const radC_tA = Math.atan2(ay - cy_t, ax - cx_t);
+  const radC_tD = Math.atan2(dy - cy_t, dx - cx_t);
+  const pathC_t = getAngleArcPath(cx_t, cy_t, 25, radC_tD * 180 / Math.PI, radC_tA * 180 / Math.PI);
+  drawPath(pathC_t, '#fb7185', 'rgba(251, 113, 133, 0.15)', 3);
+  
+  // Angle C Label moves with folding vertex
+  drawText(cx_t + 25 * Math.cos((radC_tA + radC_tD)/2), cy_t + 25 * Math.sin((radC_tA + radC_tD)/2), 'C', '#fb7185');
+  
+  // Draw labels of points
+  drawText(ax, ay - 18, 'A');
+  drawText(bx - 12, by + 12, 'B');
+  drawText(dx, dy + 15, 'D');
+  
+  // If folding completed (t > 0.95), highlight angle 1 (which is Angle AED at E)
+  if (t > 0.95) {
+    // Draw angle 1 (Pink)
+    const radEA = Math.atan2(ay - ey, ax - ex);
+    const radED = Math.atan2(dy - ey, dx - ex);
+    const pathE = getAngleArcPath(ex, ey, 25, radED * 180 / Math.PI, radEA * 180 / Math.PI);
+    drawPath(pathE, '#fb7185', 'rgba(251, 113, 133, 0.25)', 3);
+    drawText(ex + 35, ey + 5, '∠1', '#fb7185');
+    
+    // Draw point E marker
+    drawCircle(ex, ey, 5, '#fff', 'var(--accent-cyan)', 2.5);
+    drawText(ex - 15, ey - 10, 'E');
+  }
+  
+  // Vertex nodes
+  drawCircle(ax, ay, 5, '#fff', 'var(--text-muted)', 2);
+  drawCircle(bx, by, 5, '#fff', 'var(--text-muted)', 2);
+  drawCircle(cx_t, cy_t, 6, '#fff', 'var(--accent-cyan)', 3);
+  drawCircle(dx, dy, 5, '#fff', 'var(--accent-purple)', 2.5);
+}
+
+function startFoldingAnimation() {
+  if (foldingAnimId) cancelAnimationFrame(foldingAnimId);
+  
+  let start = null;
+  const duration = 1200; // 1.2 seconds for folding
+  
+  function step(timestamp) {
+    if (!start) start = timestamp;
+    const progress = Math.min(1, (timestamp - start) / duration);
+    
+    // Easing: ease-in-out quad
+    const easeProgress = progress < 0.5 
+      ? 2 * progress * progress 
+      : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+    
+    renderStage4FoldingProof(easeProgress);
+    
+    if (progress < 1) {
+      foldingAnimId = requestAnimationFrame(step);
+    }
+  }
+  
+  foldingAnimId = requestAnimationFrame(step);
+}
+
+// --- Stage 5: Exterior Angle Theorem ---
+function renderStage5() {
   if (svgDrawGroup) svgDrawGroup.innerHTML = '';
   
   const angleB = parseInt(document.getElementById('slider-s4-angB').value);
@@ -661,12 +798,14 @@ function renderStage4() {
   const ax = bx + side_c * Math.cos(radB);
   const ay = by - side_c * Math.sin(radB);
   
+  // Draw base triangle shape
   const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
   polygon.setAttribute('points', `${bx},${by} ${ax},${ay} ${cx},${cy}`);
   polygon.setAttribute('fill', 'rgba(255,255,255,0.02)');
   polygon.setAttribute('stroke', 'rgba(255,255,255,0.05)');
   if (svgDrawGroup) svgDrawGroup.appendChild(polygon);
   
+  // Base line with arrow marker representing Ray CD
   const baseRay = document.createElementNS('http://www.w3.org/2000/svg', 'line');
   baseRay.setAttribute('x1', bx);
   baseRay.setAttribute('y1', by);
@@ -677,30 +816,37 @@ function renderStage4() {
   baseRay.setAttribute('marker-end', 'url(#arrow)');
   if (svgDrawGroup) svgDrawGroup.appendChild(baseRay);
   
+  // Draw other two sides of triangle
   drawLine(bx, by, ax, ay, 'var(--accent-blue)', 3);
   drawLine(cx, cy, ax, ay, 'var(--text-secondary)', 2.5);
   
+  // Angle B arc
   const pathB = getAngleArcPath(bx, by, 30, -angleB, 0);
   drawPath(pathB, 'var(--accent-blue)', 'rgba(59, 130, 246, 0.15)', 3, 'angle-b-arc');
   
+  // Angle A arc
   const radAB = Math.atan2(by - ay, bx - ax);
   const radAC = Math.atan2(cy - ay, cx - ax);
   const pathA = getAngleArcPath(ax, ay, 28, radAC*180/Math.PI, radAB*180/Math.PI);
   drawPath(pathA, 'var(--accent-purple)', 'rgba(168, 85, 247, 0.15)', 3, 'angle-a-arc');
   
+  // Exterior Angle C arc
   const radCA = Math.atan2(ay - cy, ax - cx);
   const pathC_ext = getAngleArcPath(cx, cy, 32, radCA*180/Math.PI, 0);
   drawPath(pathC_ext, '#fb7185', 'rgba(251, 113, 133, 0.15)', 3.5, 'angle-c-ext-arc');
   
+  // Label values
   drawText(bx + 40, by - 12, `${angleB}°`, '#60a5fa');
   drawText(ax, ay + 38, `${angleA}°`, '#c084fc');
   drawText(cx + 42, cy - 16, `${angleC_ext}°`, '#f87171');
   
+  // Label text labels
   drawText(bx - 12, by + 12, 'B');
   drawText(cx - 10, cy + 15, 'C');
   drawText(ax, ay - 16, 'A');
   drawText(dx, dy + 15, 'D');
   
+  // Draw nodes
   drawCircle(ax, ay, 5, '#fff', 'var(--accent-purple)', 2);
   drawCircle(bx, by, 5, '#fff', 'var(--accent-blue)', 2);
   drawCircle(cx, cy, 5, '#fff', 'var(--text-muted)', 2);
@@ -727,6 +873,7 @@ function animateExteriorAngleCollage() {
     oldPeeled.forEach(el => el.remove());
   }
   
+  // 1. Create a cloned angle sector B to fly to C
   const sectorB = document.createElementNS('http://www.w3.org/2000/svg', 'path');
   const pathB = getAngleArcPath(0, 0, 32, -angleB, 0);
   sectorB.setAttribute('d', pathB + ' L 0 0 Z');
@@ -738,6 +885,7 @@ function animateExteriorAngleCollage() {
   sectorB.style.transform = `translate(${bx}px, ${by}px)`;
   if (svgDrawGroup) svgDrawGroup.appendChild(sectorB);
   
+  // 2. Create a cloned angle sector A to fly to C
   const sectorA = document.createElementNS('http://www.w3.org/2000/svg', 'path');
   const radAC = Math.atan2(cy - ay, cx - ax);
   const pathA = getAngleArcPath(0, 0, 28, -angleA, 0);
@@ -753,17 +901,19 @@ function animateExteriorAngleCollage() {
   sectorB.getBoundingClientRect();
   sectorA.getBoundingClientRect();
   
+  // 3. Trigger flight animation
   sectorB.style.transform = `translate(${cx}px, ${cy}px) rotate(0deg)`;
   sectorA.style.transform = `translate(${cx}px, ${cy}px) rotate(${-angleB}deg)`;
 }
 
-// --- Stage 5: Quiz & Results ---
-function renderStage5() {
+// --- Stage 6: Quiz & Results ---
+function renderStage6() {
   if (svgDrawGroup) svgDrawGroup.innerHTML = '';
   
   const trophy = document.createElementNS('http://www.w3.org/2000/svg', 'g');
   trophy.setAttribute('transform', 'translate(100, 100)');
   
+  // Pedestal
   const base = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
   base.setAttribute('x', '60');
   base.setAttribute('y', '150');
@@ -773,6 +923,7 @@ function renderStage5() {
   base.setAttribute('fill', 'var(--text-muted)');
   trophy.appendChild(base);
   
+  // Stem
   const stem = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
   stem.setAttribute('x', '94');
   stem.setAttribute('y', '100');
@@ -781,6 +932,7 @@ function renderStage5() {
   stem.setAttribute('fill', '#d1d5db');
   trophy.appendChild(stem);
   
+  // Cup Bowl
   const bowl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
   bowl.setAttribute('d', 'M 60 40 Q 60 100 100 100 Q 140 100 140 40 Z');
   bowl.setAttribute('fill', 'url(#cup-gold-grad)');
@@ -788,6 +940,7 @@ function renderStage5() {
   bowl.setAttribute('stroke-width', '2');
   trophy.appendChild(bowl);
   
+  // Handles
   const hL = document.createElementNS('http://www.w3.org/2000/svg', 'path');
   hL.setAttribute('d', 'M 60 50 Q 40 50 45 75 Q 50 90 65 85');
   hL.setAttribute('fill', 'none');
@@ -931,7 +1084,6 @@ function drawLine(x1, y1, x2, y2, color, width = 2, dash = '') {
   return line;
 }
 
-// Draw MathJax symbol inside SVG canvas (optional, currently text-anchor is fine)
 function drawCircle(cx, cy, r, fill, stroke, strokeWidth = 2) {
   const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
   circle.setAttribute('cx', cx);
@@ -974,3 +1126,4 @@ window.nextSlide = nextSlide;
 window.setGlobalStage = setGlobalStage;
 window.checkQuiz = checkQuiz;
 window.animateExteriorAngleCollage = animateExteriorAngleCollage;
+window.startFoldingAnimation = startFoldingAnimation;

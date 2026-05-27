@@ -194,9 +194,35 @@
         </div>
       </div>
 
-      <!-- Stage 4: Exterior Angle Theorem -->
+      <!-- Stage 4: Folding Proof (NEW) -->
       <div class="concept-view glass-card" id="view-stage-4">
-        <h2>重點 4：外角性質 (Exterior Angle Property)</h2>
+        <h2>重點 4：幾何探索 — 大邊對大角證明</h2>
+        <h3>摺紙法推導邊角不等關係</h3>
+        <p class="concept-description">
+          如何嚴謹地說明「較長的邊對應較大的角」呢？我們可以使用教科書最經典的**「摺紙對稱與外角性質」**進行直觀的幾何推導。
+        </p>
+
+        <div class="math-definition" style="font-size: 0.95rem; line-height: 1.6;">
+          <strong>📐 幾何推導步驟：</strong><br>
+          ❶ <strong>摺疊對稱</strong>：已知 $\overline{AB} > \overline{AC}$。我們將右腰 $\overline{AC}$ 沿著角平分線 $\overline{AD}$ 向左摺疊，使 $C$ 點落在 $\overline{AB}$ 上的 $E$ 點。摺疊後 $\triangle ACD \cong \triangle AED$，故 <strong>$\angle 1 = \angle C$</strong> 且 $\overline{AE} = \overline{AC}$。<br>
+          ❷ <strong>外角性質</strong>：觀察 $\triangle BED$。因為 $\angle 1$ 為其頂點 $E$ 的外角，故必滿足 <strong>$\angle 1 > \angle B$</strong>。<br>
+          ❸ <strong>不等代換</strong>：因為 $\angle C = \angle 1 > \angle B$，<strong>故得證 $\angle C > \angle B$</strong>！
+        </div>
+
+        <div class="interactive-controls">
+          <button id="btn-animate-folding" class="btn-primary">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+              <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            開始摺紙對稱動畫
+          </button>
+        </div>
+      </div>
+
+      <!-- Stage 5: Exterior Angle Theorem -->
+      <div class="concept-view glass-card" id="view-stage-5">
+        <h2>重點 5：外角性質 (Exterior Angle Property)</h2>
         <h3>外角等於內對角之和</h3>
         <p class="concept-description">
           將三角形的任意一邊向外延伸，就可以得到外角。
@@ -235,9 +261,9 @@
         </div>
       </div>
 
-      <!-- Stage 5: Quiz -->
-      <div class="concept-view glass-card" id="view-stage-5">
-        <h2>重點 5：挑戰小測驗 (Interactive Quiz)</h2>
+      <!-- Stage 6: Quiz -->
+      <div class="concept-view glass-card" id="view-stage-6">
+        <h2>重點 6：挑戰小測驗 (Interactive Quiz)</h2>
         <h3>檢驗您的學習表現</h3>
         <p class="concept-description">
           恭喜您完成了所有重點概念的探索！請花幾分鐘完成下列互動挑戰，測試自己是否完全掌握了「三角形的邊角關係」。
@@ -351,8 +377,9 @@
       <span class="slide-dot" onclick="setGlobalStage(1)" title="2. 三角不等式"></span>
       <span class="slide-dot" onclick="setGlobalStage(2)" title="3. 等腰三角形"></span>
       <span class="slide-dot" onclick="setGlobalStage(3)" title="4. 大角對大邊"></span>
-      <span class="slide-dot" onclick="setGlobalStage(4)" title="5. 外角性質"></span>
-      <span class="slide-dot" onclick="setGlobalStage(5)" title="6. 挑戰小測驗"></span>
+      <span class="slide-dot" onclick="setGlobalStage(4)" title="5. 大邊對大角證明"></span>
+      <span class="slide-dot" onclick="setGlobalStage(5)" title="6. 外角性質"></span>
+      <span class="slide-dot" onclick="setGlobalStage(6)" title="7. 挑戰小測驗"></span>
     </div>
     
     <div class="dock-separator"></div>

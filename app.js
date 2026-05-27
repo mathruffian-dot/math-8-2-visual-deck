@@ -198,16 +198,20 @@ function setStage(stageIdx) {
 
 // --- Helper Functions ---
 function getAngleArcPath(cx, cy, r, startAngle, endAngle) {
+  let diff = endAngle - startAngle;
+  while (diff < -180) diff += 360;
+  while (diff > 180) diff -= 360;
+  
   const startRad = (startAngle * Math.PI) / 180;
-  const endRad = (endAngle * Math.PI) / 180;
+  const endRad = ((startAngle + diff) * Math.PI) / 180;
   
   const x1 = cx + r * Math.cos(startRad);
   const y1 = cy + r * Math.sin(startRad);
   const x2 = cx + r * Math.cos(endRad);
   const y2 = cy + r * Math.sin(endRad);
   
-  const largeArcFlag = Math.abs(endAngle - startAngle) <= 180 ? "0" : "1";
-  const sweepFlag = endAngle > startAngle ? "1" : "0";
+  const largeArcFlag = "0"; // 三角形內角與外角皆小於 180 度，恆為 0
+  const sweepFlag = diff > 0 ? "1" : "0";
   
   return `M ${x1} ${y1} A ${r} ${r} 0 ${largeArcFlag} ${sweepFlag} ${x2} ${y2}`;
 }

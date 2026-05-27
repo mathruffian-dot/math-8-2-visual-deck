@@ -46,7 +46,7 @@
 
         <div class="math-definition">
           <strong>💡 簡報切換導引：</strong><br>
-          使用頁面下方的<strong>「上一頁」與「下一頁」按鈕</strong>（或直接使用電腦鍵盤上的 <strong>左(←)、右(→) 方向鍵</strong>）來切換教學重點！在每個重點中，您可以親自動手操作模擬器來驗證定理！
+          使用頁面下方懸浮的<strong>「遙控器面板」左右按鈕</strong>（或直接使用電腦鍵盤上的 <strong>左(←)、右(→) 方向鍵</strong>）來切換教學重點！在每個重點中，您可以親動作調整模擬器來驗證定理！
         </div>
       </div>
 
@@ -320,33 +320,33 @@
     </section>
   </main>
 
-  <!-- Bottom: Presentation Slide Controls and Navigation -->
-  <footer class="slide-nav-container">
-    <div class="slide-nav-wrapper">
-      <button class="slide-nav-btn" id="btn-prev-slide" onclick="prevSlide()">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5">
-          <polyline points="15 18 9 12 15 6"></polyline>
-        </svg>
-        上一頁
-      </button>
-      
-      <div class="slide-indicators">
-        <span class="slide-dot active" onclick="setGlobalStage(0)" title="1. 課綱總覽"></span>
-        <span class="slide-dot" onclick="setGlobalStage(1)" title="2. 三角不等式"></span>
-        <span class="slide-dot" onclick="setGlobalStage(2)" title="3. 等腰三角形"></span>
-        <span class="slide-dot" onclick="setGlobalStage(3)" title="4. 大角對大邊"></span>
-        <span class="slide-dot" onclick="setGlobalStage(4)" title="5. 外角性質"></span>
-        <span class="slide-dot" onclick="setGlobalStage(5)" title="6. 挑戰小測驗"></span>
-      </div>
-      
-      <button class="slide-nav-btn" id="btn-next-slide" onclick="nextSlide()">
-        下一頁
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5">
-          <polyline points="9 18 15 12 9 6"></polyline>
-        </svg>
-      </button>
+  <!-- Floating Glassmorphic Presentation Remote Control Dock -->
+  <div class="presentation-dock">
+    <button class="dock-btn" id="btn-prev-slide" onclick="prevSlide()" title="上一頁 (左方向鍵 ←)">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5">
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+    </button>
+    
+    <div class="dock-separator"></div>
+    
+    <div class="slide-indicators">
+      <span class="slide-dot active" onclick="setGlobalStage(0)" title="1. 課綱總覽"></span>
+      <span class="slide-dot" onclick="setGlobalStage(1)" title="2. 三角不等式"></span>
+      <span class="slide-dot" onclick="setGlobalStage(2)" title="3. 等腰三角形"></span>
+      <span class="slide-dot" onclick="setGlobalStage(3)" title="4. 大角對大邊"></span>
+      <span class="slide-dot" onclick="setGlobalStage(4)" title="5. 外角性質"></span>
+      <span class="slide-dot" onclick="setGlobalStage(5)" title="6. 挑戰小測驗"></span>
     </div>
-  </footer>
+    
+    <div class="dock-separator"></div>
+    
+    <button class="dock-btn" id="btn-next-slide" onclick="nextSlide()" title="下一頁 (右方向鍵 →)">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5">
+        <polyline points="9 18 15 12 9 6"></polyline>
+      </svg>
+    </button>
+  </div>
 
   <script src="app.js"></script>
 </body>

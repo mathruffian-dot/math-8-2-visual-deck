@@ -9,10 +9,6 @@ const canvasTitle = document.getElementById('canvas-dynamic-title');
 const svgDrawGroup = document.getElementById('svg-draw-group');
 const geometrySvg = document.getElementById('geometry-svg');
 
-const btnPrev = document.getElementById('btn-prev-slide');
-const btnNext = document.getElementById('btn-next-slide');
-const slideDots = document.querySelectorAll('.slide-dot');
-
 // Stage view containers
 const stageViews = [
   document.getElementById('view-stage-0'),
@@ -50,9 +46,9 @@ function setupEventListeners() {
     document.getElementById('val-s1-c').innerText = s1c.value;
     renderStage1();
   };
-  s1a.addEventListener('input', updateS1);
-  s1b.addEventListener('input', updateS1);
-  s1c.addEventListener('input', updateS1);
+  if (s1a) s1a.addEventListener('input', updateS1);
+  if (s1b) s1b.addEventListener('input', updateS1);
+  if (s1c) s1c.addEventListener('input', updateS1);
 
   // Stage 2 sliders (Isosceles)
   const s2angle = document.getElementById('slider-s2-angle');
@@ -62,8 +58,8 @@ function setupEventListeners() {
     document.getElementById('val-s2-leg').innerText = s2leg.value;
     renderStage2();
   };
-  s2angle.addEventListener('input', updateS2);
-  s2leg.addEventListener('input', updateS2);
+  if (s2angle) s2angle.addEventListener('input', updateS2);
+  if (s2leg) s2leg.addEventListener('input', updateS2);
 
   // Stage 3 sliders (Side-Angle Inequality)
   const s3x = document.getElementById('slider-s3-x');
@@ -73,8 +69,8 @@ function setupEventListeners() {
     document.getElementById('val-s3-y').innerText = s3y.value;
     renderStage3();
   };
-  s3x.addEventListener('input', updateS3);
-  s3y.addEventListener('input', updateS3);
+  if (s3x) s3x.addEventListener('input', updateS3);
+  if (s3y) s3y.addEventListener('input', updateS3);
 
   // Stage 4 sliders (Exterior Angle)
   const s4angA = document.getElementById('slider-s4-angA');
@@ -84,19 +80,22 @@ function setupEventListeners() {
     document.getElementById('val-s4-angB').innerText = s4angB.value + '°';
     renderStage4();
   };
-  s4angA.addEventListener('input', updateS4);
-  s4angB.addEventListener('input', updateS4);
+  if (s4angA) s4angA.addEventListener('input', updateS4);
+  if (s4angB) s4angB.addEventListener('input', updateS4);
 
-  document.getElementById('btn-animate-exterior').addEventListener('click', animateExteriorAngleCollage);
+  const btnAnimateExt = document.getElementById('btn-animate-exterior');
+  if (btnAnimateExt) btnAnimateExt.addEventListener('click', animateExteriorAngleCollage);
 
   // Support direct drag in SVG for Stage 3 vertex A
-  geometrySvg.addEventListener('mousedown', startS3Drag);
-  geometrySvg.addEventListener('mousemove', dragS3Vertex);
-  window.addEventListener('mouseup', stopS3Drag);
+  if (geometrySvg) {
+    geometrySvg.addEventListener('mousedown', startS3Drag);
+    geometrySvg.addEventListener('mousemove', dragS3Vertex);
+    window.addEventListener('mouseup', stopS3Drag);
 
-  geometrySvg.addEventListener('touchstart', startS3Drag, { passive: false });
-  geometrySvg.addEventListener('touchmove', dragS3Vertex, { passive: false });
-  window.addEventListener('touchend', stopS3Drag);
+    geometrySvg.addEventListener('touchstart', startS3Drag, { passive: false });
+    geometrySvg.addEventListener('touchmove', dragS3Vertex, { passive: false });
+    window.addEventListener('touchend', stopS3Drag);
+  }
 }
 
 // --- Slide Switch Functions ---
@@ -128,18 +127,20 @@ function setStage(stageIdx) {
 
   // Update badges & UI controls
   const stageNames = ["導覽：學習大綱", "核心一：三角不等式", "核心二：等腰三角形", "核心三：大角對大邊", "核心四：外角定理", "挑戰：學習評量"];
-  stageBadge.innerText = stageNames[stageIdx];
-  canvasTitle.innerText = "幾何動態模擬畫布 - " + stageNames[stageIdx].split('：')[1];
+  if (stageBadge) stageBadge.innerText = stageNames[stageIdx];
+  if (canvasTitle) canvasTitle.innerText = "幾何動態模擬畫布 - " + stageNames[stageIdx].split('：')[1];
 
-  // Disable Prev/Next at boundaries
-  btnPrev.disabled = (stageIdx === 0);
-  btnNext.disabled = (stageIdx === 5);
+  // Disable Prev/Next at boundaries dynamically to prevent null reference crash
+  const btnPrev = document.getElementById('btn-prev-slide');
+  const btnNext = document.getElementById('btn-next-slide');
+  if (btnPrev) btnPrev.disabled = (stageIdx === 0);
+  if (btnNext) btnNext.disabled = (stageIdx === 5);
 
   // Update dot indicators active class
+  const slideDots = document.querySelectorAll('.slide-dot');
   slideDots.forEach((dot, idx) => {
     if (idx === stageIdx) {
       dot.classList.add('active');
-      // Alternate color on some slides for aesthetics
       if (idx % 2 !== 0) {
         dot.classList.add('active-purple');
       } else {
@@ -160,7 +161,7 @@ function setStage(stageIdx) {
   });
 
   // Clear drawing group
-  svgDrawGroup.innerHTML = '';
+  if (svgDrawGroup) svgDrawGroup.innerHTML = '';
 
   // Render stage-specific graphics
   switch(stageIdx) {
@@ -278,7 +279,7 @@ function startStage0OverviewAnim() {
     angle = (angle + 0.6) % 360;
     
     // Draw rotating complex grid & triangles to show visual excellence
-    svgDrawGroup.innerHTML = '';
+    if (svgDrawGroup) svgDrawGroup.innerHTML = '';
     
     const rad = (angle * Math.PI) / 180;
     const r = 90;
@@ -299,7 +300,7 @@ function startStage0OverviewAnim() {
     orbital.setAttribute('fill', 'none');
     orbital.setAttribute('stroke', 'rgba(168, 85, 247, 0.15)');
     orbital.setAttribute('stroke-dasharray', '5, 5');
-    svgDrawGroup.appendChild(orbital);
+    if (svgDrawGroup) svgDrawGroup.appendChild(orbital);
     
     // Draw inner geometry triangle
     const tri = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
@@ -308,7 +309,7 @@ function startStage0OverviewAnim() {
     tri.setAttribute('stroke', 'url(#stage0-neon-grad)');
     tri.setAttribute('stroke-width', '3');
     tri.setAttribute('filter', 'drop-shadow(0 0 10px rgba(6, 182, 212, 0.5))');
-    svgDrawGroup.appendChild(tri);
+    if (svgDrawGroup) svgDrawGroup.appendChild(tri);
     
     // Draw glowing nodes
     [ {x: ax, label: 'A', color: '#06b6d4'}, 
@@ -323,29 +324,31 @@ function startStage0OverviewAnim() {
       dot.setAttribute('fill', '#fff');
       dot.setAttribute('stroke', node.color);
       dot.setAttribute('stroke-width', '3');
-      svgDrawGroup.appendChild(dot);
+      if (svgDrawGroup) svgDrawGroup.appendChild(dot);
     });
 
     // Define linear gradient inside SVG dynamically
     if (!document.getElementById('stage0-neon-grad')) {
       const defs = geometrySvg.querySelector('defs');
-      const grad = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
-      grad.setAttribute('id', 'stage0-neon-grad');
-      grad.setAttribute('x1', '0%');
-      grad.setAttribute('y1', '0%');
-      grad.setAttribute('x2', '100%');
-      grad.setAttribute('y2', '100%');
-      
-      const s1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-      s1.setAttribute('offset', '0%');
-      s1.setAttribute('stop-color', '#06b6d4');
-      const s2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-      s2.setAttribute('offset', '100%');
-      s2.setAttribute('stop-color', '#a855f7');
-      
-      grad.appendChild(s1);
-      grad.appendChild(s2);
-      defs.appendChild(grad);
+      if (defs) {
+        const grad = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+        grad.setAttribute('id', 'stage0-neon-grad');
+        grad.setAttribute('x1', '0%');
+        grad.setAttribute('y1', '0%');
+        grad.setAttribute('x2', '100%');
+        grad.setAttribute('y2', '100%');
+        
+        const s1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+        s1.setAttribute('offset', '0%');
+        s1.setAttribute('stop-color', '#06b6d4');
+        const s2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+        s2.setAttribute('offset', '100%');
+        s2.setAttribute('stop-color', '#a855f7');
+        
+        grad.appendChild(s1);
+        grad.appendChild(s2);
+        defs.appendChild(grad);
+      }
     }
     
     stage0AnimId = requestAnimationFrame(tick);
@@ -356,7 +359,7 @@ function startStage0OverviewAnim() {
 
 // --- Stage 1: Triangle Inequality ---
 function renderStage1() {
-  svgDrawGroup.innerHTML = '';
+  if (svgDrawGroup) svgDrawGroup.innerHTML = '';
   
   const sideA = parseInt(document.getElementById('slider-s1-a').value);
   const sideB = parseInt(document.getElementById('slider-s1-b').value);
@@ -374,8 +377,6 @@ function renderStage1() {
   const canForm = (sideA + sideB > sideC) && (sideA + sideC > sideB) && (sideB + sideC > sideA);
   
   if (canForm) {
-    // Solid Triangle Case: calculate exact apex vertex A
-    // Law of cosines: cos B = (a^2 + c^2 - b^2) / (2ac)
     const cosB = (sideA*sideA + sideC*sideC - sideB*sideB) / (2 * sideA * sideC);
     const angleB = Math.acos(cosB); // rad
     
@@ -386,7 +387,7 @@ function renderStage1() {
     const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
     polygon.setAttribute('points', `${bx},${by} ${ax},${ay} ${cx},${cy}`);
     polygon.setAttribute('class', 'svg-triangle');
-    svgDrawGroup.appendChild(polygon);
+    if (svgDrawGroup) svgDrawGroup.appendChild(polygon);
     
     // Draw apex lines
     drawLine(bx, by, ax, ay, 'var(--accent-cyan)', 3);
@@ -400,13 +401,15 @@ function renderStage1() {
     drawText((bx + ax)/2 - 18, (by + ay)/2 - 10, sideA, '#67e8f9');
     drawText((cx + ax)/2 + 18, (cy + ay)/2 - 10, sideB, '#c084fc');
     
-    statusLabel.innerHTML = '✅ <strong>可構成三角形：</strong>任兩邊長之和皆大於第三邊。';
-    statusLabel.style.borderColor = 'rgba(16, 185, 129, 0.4)';
-    statusLabel.style.background = 'rgba(16, 185, 129, 0.08)';
-    statusLabel.style.color = '#34d399';
+    if (statusLabel) {
+      statusLabel.innerHTML = '✅ <strong>可構成三角形：</strong>任兩邊長之和皆大於第三邊。';
+      statusLabel.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+      statusLabel.style.background = 'rgba(16, 185, 129, 0.08)';
+      statusLabel.style.color = '#34d399';
+    }
     
   } else {
-    // Invalid Case: segments lay flat or swing unsuccessfully
+    // Invalid Case
     let thetaB = 0; // flat
     let thetaC = Math.PI; // flat
     
@@ -440,10 +443,12 @@ function renderStage1() {
       drawText(200, by + 18, `單邊太長無法構成！`, '#fb7185');
     }
     
-    statusLabel.innerHTML = '❌ <strong>無法構成三角形：</strong>不滿足「兩邊之和大於第三邊」！';
-    statusLabel.style.borderColor = 'rgba(244, 63, 94, 0.4)';
-    statusLabel.style.background = 'rgba(244, 63, 94, 0.08)';
-    statusLabel.style.color = '#fb7185';
+    if (statusLabel) {
+      statusLabel.innerHTML = '❌ <strong>無法構成三角形：</strong>不滿足「兩邊之和大於第三邊」！';
+      statusLabel.style.borderColor = 'rgba(244, 63, 94, 0.4)';
+      statusLabel.style.background = 'rgba(244, 63, 94, 0.08)';
+      statusLabel.style.color = '#fb7185';
+    }
   }
   
   // Render base endpoints
@@ -456,12 +461,11 @@ function renderStage1() {
 
 // --- Stage 2: Isosceles Triangle ---
 function renderStage2() {
-  svgDrawGroup.innerHTML = '';
+  if (svgDrawGroup) svgDrawGroup.innerHTML = '';
   
   const apexAngle = parseInt(document.getElementById('slider-s2-angle').value);
   const legLength = parseInt(document.getElementById('slider-s2-leg').value);
   
-  // Apex angle A, base angles B and C are equal
   const baseAngle = (180 - apexAngle) / 2;
   
   const ax = 200;
@@ -478,14 +482,14 @@ function renderStage2() {
   polygon.setAttribute('points', `${ax},${ay} ${bx},${by} ${cx},${cy}`);
   polygon.setAttribute('class', 'svg-triangle');
   polygon.setAttribute('style', 'fill: rgba(168, 85, 247, 0.1); stroke: var(--accent-purple); stroke-width: 3;');
-  svgDrawGroup.appendChild(polygon);
+  if (svgDrawGroup) svgDrawGroup.appendChild(polygon);
   
   // Highlight equal legs (AB and AC) with double neon lines
   drawLine(ax, ay, bx, by, 'var(--accent-cyan)', 3.5);
   drawLine(ax, ay, cx, cy, 'var(--accent-cyan)', 3.5);
   drawLine(bx, by, cx, cy, 'var(--text-muted)', 2);
   
-  // Draw Congruence Ticks (Geometry Equal Ticks)
+  // Draw Congruence Ticks
   const midABx = (ax + bx) / 2;
   const midABy = (ay + by) / 2;
   const midACx = (ax + cx) / 2;
@@ -507,7 +511,7 @@ function renderStage2() {
   bArc.setAttribute('class', 'svg-angle-arc');
   bArc.setAttribute('stroke', 'var(--accent-purple)');
   bArc.setAttribute('fill', 'rgba(168, 85, 247, 0.15)');
-  svgDrawGroup.appendChild(bArc);
+  if (svgDrawGroup) svgDrawGroup.appendChild(bArc);
   
   const cArc = document.createElementNS('http://www.w3.org/2000/svg', 'path');
   const radAC = Math.atan2(ay - cy, ax - cx);
@@ -516,7 +520,7 @@ function renderStage2() {
   cArc.setAttribute('class', 'svg-angle-arc');
   cArc.setAttribute('stroke', 'var(--accent-purple)');
   cArc.setAttribute('fill', 'rgba(168, 85, 247, 0.15)');
-  svgDrawGroup.appendChild(cArc);
+  if (svgDrawGroup) svgDrawGroup.appendChild(cArc);
   
   // Draw text values
   drawText(bx + 35, by - 12, `${baseAngle.toFixed(0)}°`, '#c084fc');
@@ -541,7 +545,7 @@ function renderStage2() {
 
 // --- Stage 3: Larger Angle / Larger Side ---
 function renderStage3() {
-  svgDrawGroup.innerHTML = '';
+  if (svgDrawGroup) svgDrawGroup.innerHTML = '';
   
   const ax = parseFloat(document.getElementById('slider-s3-x').value);
   const ay = parseFloat(document.getElementById('slider-s3-y').value);
@@ -591,8 +595,10 @@ function renderStage3() {
     const rank = sortedSides.findIndex(ss => ss.label === s.label);
     const tier = getTierClass(rank);
     const badge = document.getElementById(s.elemId);
-    badge.innerText = `${s.val} (${tier.name})`;
-    badge.className = `data-badge ${tier.style}`;
+    if (badge) {
+      badge.innerText = `${s.val} (${tier.name})`;
+      badge.className = `data-badge ${tier.style}`;
+    }
     s.color = tier.color;
   });
   
@@ -600,8 +606,10 @@ function renderStage3() {
     const rank = sortedAngles.findIndex(sa => sa.label === ang.label);
     const tier = getTierClass(rank);
     const badge = document.getElementById(ang.elemId);
-    badge.innerText = `${ang.val.toFixed(0)}° (${tier.name})`;
-    badge.className = `data-badge ${tier.style}`;
+    if (badge) {
+      badge.innerText = `${ang.val.toFixed(0)}° (${tier.name})`;
+      badge.className = `data-badge ${tier.style}`;
+    }
     ang.color = tier.color;
   });
 
@@ -614,7 +622,7 @@ function renderStage3() {
   polygon.setAttribute('points', `${ax},${ay} ${bx},${by} ${cx},${cy}`);
   polygon.setAttribute('fill', 'rgba(255,255,255,0.02)');
   polygon.setAttribute('stroke', 'none');
-  svgDrawGroup.appendChild(polygon);
+  if (svgDrawGroup) svgDrawGroup.appendChild(polygon);
 
   // Render glowing Angle Arc highlights
   const radBC = Math.atan2(cy - by, cx - bx);
@@ -644,7 +652,7 @@ function renderStage3() {
   handleGlow.setAttribute('r', '15');
   handleGlow.setAttribute('fill', 'rgba(6, 182, 212, 0.15)');
   handleGlow.setAttribute('style', 'cursor: grab;');
-  svgDrawGroup.appendChild(handleGlow);
+  if (svgDrawGroup) svgDrawGroup.appendChild(handleGlow);
   
   drawCircle(ax, ay, 7, '#fff', 'var(--accent-cyan)', 3);
   drawCircle(bx, by, 5, '#fff', 'var(--text-muted)', 2);
@@ -653,7 +661,7 @@ function renderStage3() {
 
 // --- Stage 4: Exterior Angle Theorem ---
 function renderStage4() {
-  svgDrawGroup.innerHTML = '';
+  if (svgDrawGroup) svgDrawGroup.innerHTML = '';
   
   const angleB = parseInt(document.getElementById('slider-s4-angB').value);
   const angleA = parseInt(document.getElementById('slider-s4-angA').value);
@@ -682,7 +690,7 @@ function renderStage4() {
   polygon.setAttribute('points', `${bx},${by} ${ax},${ay} ${cx},${cy}`);
   polygon.setAttribute('fill', 'rgba(255,255,255,0.02)');
   polygon.setAttribute('stroke', 'rgba(255,255,255,0.05)');
-  svgDrawGroup.appendChild(polygon);
+  if (svgDrawGroup) svgDrawGroup.appendChild(polygon);
   
   // Base line with arrow marker representing Ray CD
   const baseRay = document.createElementNS('http://www.w3.org/2000/svg', 'line');
@@ -693,7 +701,7 @@ function renderStage4() {
   baseRay.setAttribute('stroke', 'var(--text-muted)');
   baseRay.setAttribute('stroke-width', '2.5');
   baseRay.setAttribute('marker-end', 'url(#arrow)');
-  svgDrawGroup.appendChild(baseRay);
+  if (svgDrawGroup) svgDrawGroup.appendChild(baseRay);
   
   // Draw other two sides of triangle
   drawLine(bx, by, ax, ay, 'var(--accent-blue)', 3);
@@ -747,8 +755,10 @@ function animateExteriorAngleCollage() {
   const ax = bx + side_c * Math.cos(radB);
   const ay = by - side_c * Math.sin(radB);
   
-  const oldPeeled = svgDrawGroup.querySelectorAll('.peeled-angle');
-  oldPeeled.forEach(el => el.remove());
+  if (svgDrawGroup) {
+    const oldPeeled = svgDrawGroup.querySelectorAll('.peeled-angle');
+    oldPeeled.forEach(el => el.remove());
+  }
   
   // 1. Create a cloned angle sector B to fly to C
   const sectorB = document.createElementNS('http://www.w3.org/2000/svg', 'path');
@@ -760,7 +770,7 @@ function animateExteriorAngleCollage() {
   sectorB.setAttribute('class', 'peeled-angle');
   
   sectorB.style.transform = `translate(${bx}px, ${by}px)`;
-  svgDrawGroup.appendChild(sectorB);
+  if (svgDrawGroup) svgDrawGroup.appendChild(sectorB);
   
   // 2. Create a cloned angle sector A to fly to C
   const sectorA = document.createElementNS('http://www.w3.org/2000/svg', 'path');
@@ -773,7 +783,7 @@ function animateExteriorAngleCollage() {
   sectorA.setAttribute('class', 'peeled-angle');
   
   sectorA.style.transform = `translate(${ax}px, ${ay}px) rotate(${radAC * 180 / Math.PI + 180}deg)`;
-  svgDrawGroup.appendChild(sectorA);
+  if (svgDrawGroup) svgDrawGroup.appendChild(sectorA);
   
   sectorB.getBoundingClientRect();
   sectorA.getBoundingClientRect();
@@ -785,7 +795,7 @@ function animateExteriorAngleCollage() {
 
 // --- Stage 5: Quiz & Results ---
 function renderStage5() {
-  svgDrawGroup.innerHTML = '';
+  if (svgDrawGroup) svgDrawGroup.innerHTML = '';
   
   const trophy = document.createElementNS('http://www.w3.org/2000/svg', 'g');
   trophy.setAttribute('transform', 'translate(100, 100)');
@@ -832,7 +842,7 @@ function renderStage5() {
   hR.setAttribute('stroke-width', '4');
   trophy.appendChild(hR);
   
-  svgDrawGroup.appendChild(trophy);
+  if (svgDrawGroup) svgDrawGroup.appendChild(trophy);
   
   drawQuizStar(200, 80, 8);
   drawQuizStar(150, 120, 6);
@@ -840,27 +850,29 @@ function renderStage5() {
   
   if (!document.getElementById('cup-gold-grad')) {
     const defs = geometrySvg.querySelector('defs');
-    const grad = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
-    grad.setAttribute('id', 'cup-gold-grad');
-    grad.setAttribute('x1', '0%');
-    grad.setAttribute('y1', '0%');
-    grad.setAttribute('x2', '100%');
-    grad.setAttribute('y2', '0%');
-    
-    const s1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-    s1.setAttribute('offset', '0%');
-    s1.setAttribute('stop-color', '#fbbf24');
-    const s2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-    s2.setAttribute('offset', '50%');
-    s2.setAttribute('stop-color', '#fef08a');
-    const s3 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-    s3.setAttribute('offset', '100%');
-    s3.setAttribute('stop-color', '#ca8a04');
-    
-    grad.appendChild(s1);
-    grad.appendChild(s2);
-    grad.appendChild(s3);
-    defs.appendChild(grad);
+    if (defs) {
+      const grad = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+      grad.setAttribute('id', 'cup-gold-grad');
+      grad.setAttribute('x1', '0%');
+      grad.setAttribute('y1', '0%');
+      grad.setAttribute('x2', '100%');
+      grad.setAttribute('y2', '0%');
+      
+      const s1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+      s1.setAttribute('offset', '0%');
+      s1.setAttribute('stop-color', '#fbbf24');
+      const s2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+      s2.setAttribute('offset', '50%');
+      s2.setAttribute('stop-color', '#fef08a');
+      const s3 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+      s3.setAttribute('offset', '100%');
+      s3.setAttribute('stop-color', '#ca8a04');
+      
+      grad.appendChild(s1);
+      grad.appendChild(s2);
+      grad.appendChild(s3);
+      defs.appendChild(grad);
+    }
   }
 }
 
@@ -879,7 +891,7 @@ function drawQuizStar(cx, cy, r) {
   star.setAttribute('fill', '#fde047');
   star.setAttribute('stroke', '#eab308');
   star.setAttribute('stroke-width', '1');
-  svgDrawGroup.appendChild(star);
+  if (svgDrawGroup) svgDrawGroup.appendChild(star);
 }
 
 // --- Quiz Validation Mechanism ---
@@ -900,7 +912,7 @@ function checkQuiz(qIdx, optionIdx, btnElement) {
     }
   });
   
-  expCard.style.display = 'block';
+  if (expCard) expCard.style.display = 'block';
   
   if (optionIdx === correctOpt) {
     createCanvasConfetti();
@@ -919,7 +931,7 @@ function createCanvasConfetti() {
     starGlow.setAttribute('stroke', ['#67e8f9', '#c084fc', '#fde047', '#34d399'][Math.floor(Math.random()*4)]);
     starGlow.setAttribute('stroke-width', '2');
     starGlow.setAttribute('style', 'transition: all 1s ease-out; opacity: 1;');
-    svgDrawGroup.appendChild(starGlow);
+    if (svgDrawGroup) svgDrawGroup.appendChild(starGlow);
     
     setTimeout(() => {
       starGlow.setAttribute('r', '20');
@@ -944,7 +956,7 @@ function drawLine(x1, y1, x2, y2, color, width = 2, dash = '') {
   if (dash) {
     line.setAttribute('stroke-dasharray', dash);
   }
-  svgDrawGroup.appendChild(line);
+  if (svgDrawGroup) svgDrawGroup.appendChild(line);
   return line;
 }
 
@@ -956,7 +968,7 @@ function drawCircle(cx, cy, r, fill, stroke, strokeWidth = 2) {
   circle.setAttribute('fill', fill);
   circle.setAttribute('stroke', stroke);
   circle.setAttribute('stroke-width', strokeWidth);
-  svgDrawGroup.appendChild(circle);
+  if (svgDrawGroup) svgDrawGroup.appendChild(circle);
   return circle;
 }
 
@@ -967,7 +979,7 @@ function drawText(x, y, content, color = 'var(--text-primary)') {
   txt.setAttribute('class', 'svg-text');
   txt.setAttribute('fill', color);
   txt.textContent = content;
-  svgDrawGroup.appendChild(txt);
+  if (svgDrawGroup) svgDrawGroup.appendChild(txt);
   return txt;
 }
 
@@ -980,6 +992,13 @@ function drawPath(d, stroke, fill = 'none', strokeWidth = 2, classId = '') {
   if (classId) {
     path.setAttribute('id', classId);
   }
-  svgDrawGroup.appendChild(path);
+  if (svgDrawGroup) svgDrawGroup.appendChild(path);
   return path;
 }
+
+// --- Bulletproof Explicit Global Exposure for onclick Event Handlers ---
+window.prevSlide = prevSlide;
+window.nextSlide = nextSlide;
+window.setGlobalStage = setGlobalStage;
+window.checkQuiz = checkQuiz;
+window.animateExteriorAngleCollage = animateExteriorAngleCollage;

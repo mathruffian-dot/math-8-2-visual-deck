@@ -1,6 +1,8 @@
 // --- Global State ---
 let currentStage = 0;
 let stage0AnimId = null;
+let foldingAnimId = null;
+let foldingS5AnimId = null;
 let isDraggingS3Vertex = false;
 
 // --- DOM Elements ---
@@ -9,7 +11,7 @@ const canvasTitle = document.getElementById('canvas-dynamic-title');
 const svgDrawGroup = document.getElementById('svg-draw-group');
 const geometrySvg = document.getElementById('geometry-svg');
 
-// Stage view containers (Expanded to 7 stages)
+// Stage view containers (Expanded to 8 stages)
 const stageViews = [
   document.getElementById('view-stage-0'),
   document.getElementById('view-stage-1'),
@@ -17,7 +19,8 @@ const stageViews = [
   document.getElementById('view-stage-3'),
   document.getElementById('view-stage-4'),
   document.getElementById('view-stage-5'),
-  document.getElementById('view-stage-6')
+  document.getElementById('view-stage-6'),
+  document.getElementById('view-stage-7')
 ];
 
 // --- Initialization ---
@@ -77,13 +80,17 @@ function setupEventListeners() {
   const btnAnimateFolding = document.getElementById('btn-animate-folding');
   if (btnAnimateFolding) btnAnimateFolding.addEventListener('click', startFoldingAnimation);
 
-  // Stage 5 sliders (Exterior Angle)
+  // Stage 5 Folding Proof Button (NEW)
+  const btnAnimateFoldingS5 = document.getElementById('btn-animate-folding-s5');
+  if (btnAnimateFoldingS5) btnAnimateFoldingS5.addEventListener('click', startFoldingS5Animation);
+
+  // Stage 6 sliders (Exterior Angle)
   const s4angA = document.getElementById('slider-s4-angA');
   const s4angB = document.getElementById('slider-s4-angB');
   const updateS4 = () => {
     document.getElementById('val-s4-angA').innerText = s4angA.value + '°';
     document.getElementById('val-s4-angB').innerText = s4angB.value + '°';
-    renderStage5();
+    renderStage6();
   };
   if (s4angA) s4angA.addEventListener('input', updateS4);
   if (s4angB) s4angB.addEventListener('input', updateS4);
@@ -111,7 +118,7 @@ function prevSlide() {
 }
 
 function nextSlide() {
-  if (currentStage < 6) { // Expanded limit to 6 (7 slides total)
+  if (currentStage < 7) { // Expanded limit to 7 (8 slides total)
     setStage(currentStage + 1);
   }
 }
@@ -131,6 +138,10 @@ function setStage(stageIdx) {
     cancelAnimationFrame(foldingAnimId);
     foldingAnimId = null;
   }
+  if (foldingS5AnimId) {
+    cancelAnimationFrame(foldingS5AnimId);
+    foldingS5AnimId = null;
+  }
   
   currentStage = stageIdx;
 
@@ -141,7 +152,8 @@ function setStage(stageIdx) {
     "核心二：等腰三角形", 
     "核心三：大角對大邊", 
     "核心四：大邊對大角證明", 
-    "核心五：外角定理", 
+    "核心五：大角對大邊證明", 
+    "核心六：外角定理", 
     "挑戰：學習評量"
   ];
   if (stageBadge) stageBadge.innerText = stageNames[stageIdx];
@@ -151,7 +163,7 @@ function setStage(stageIdx) {
   const btnPrev = document.getElementById('btn-prev-slide');
   const btnNext = document.getElementById('btn-next-slide');
   if (btnPrev) btnPrev.disabled = (stageIdx === 0);
-  if (btnNext) btnNext.disabled = (stageIdx === 6);
+  if (btnNext) btnNext.disabled = (stageIdx === 7);
 
   // Update dot indicators active class
   const slideDots = document.querySelectorAll('.slide-dot');
@@ -197,13 +209,16 @@ function setStage(stageIdx) {
       renderStage3();
       break;
     case 4:
-      renderStage4FoldingProof(0); // Initialize unfolded (t=0)
+      renderStage4FoldingProof(0); // Initialize unfolded
       break;
     case 5:
-      renderStage5();
+      renderStage5FoldingProof(0); // Initialize unfolded
       break;
     case 6:
       renderStage6();
+      break;
+    case 7:
+      renderStage7();
       break;
   }
 
@@ -656,23 +671,19 @@ function renderStage3() {
   drawCircle(cx, cy, 5, '#fff', 'var(--text-muted)', 2);
 }
 
-// --- Stage 4: Folding Proof (NEW) ---
-let foldingAnimId = null;
-
+// --- Stage 4: Folding Proof (Longer Side -> Larger Angle) ---
 function renderStage4FoldingProof(t = 0) {
   if (svgDrawGroup) svgDrawGroup.innerHTML = '';
   
   const ax = 280, ay = 140;
   const bx = 60, by = 280;
   const cx = 320, cy = 280;
-  const dx = 227, dy = 280; // Crease point on BC
-  const ex = 157, ey = 218; // Congruent point E on AB
+  const dx = 227, dy = 280;
+  const ex = 157, ey = 218;
   
-  // Calculate current C_fold coordinates along a lift-fold trajectory
   const cx_t = (1 - t) * cx + t * ex - 25 * Math.sin(t * Math.PI);
   const cy_t = (1 - t) * cy + t * ey - 45 * Math.sin(t * Math.PI);
   
-  // Draw main base triangle ABC (faded)
   const basePolygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
   basePolygon.setAttribute('points', `${ax},${ay} ${bx},${by} ${cx},${cy}`);
   basePolygon.setAttribute('fill', 'rgba(255, 255, 255, 0.01)');
@@ -680,12 +691,9 @@ function renderStage4FoldingProof(t = 0) {
   basePolygon.setAttribute('stroke-width', '2.5');
   if (svgDrawGroup) svgDrawGroup.appendChild(basePolygon);
   
-  // Draw segment BD
   drawLine(bx, by, dx, dy, 'var(--text-muted)', 2);
-  // Draw segment BE
   drawLine(bx, by, ex, ey, 'var(--text-muted)', 2);
   
-  // Draw the unfolding part of the triangle (faded right wing)
   const rightWing = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
   rightWing.setAttribute('points', `${ax},${ay} ${cx},${cy} ${dx},${dy}`);
   rightWing.setAttribute('fill', 'none');
@@ -694,7 +702,6 @@ function renderStage4FoldingProof(t = 0) {
   rightWing.setAttribute('stroke-dasharray', '3, 3');
   if (svgDrawGroup) svgDrawGroup.appendChild(rightWing);
   
-  // Draw the folding triangle (AC_foldD) with a nice semi-transparent green/cyan fill
   const foldingPolygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
   foldingPolygon.setAttribute('points', `${ax},${ay} ${cx_t},${cy_t} ${dx},${dy}`);
   foldingPolygon.setAttribute('fill', 'rgba(6, 182, 212, 0.12)');
@@ -702,45 +709,35 @@ function renderStage4FoldingProof(t = 0) {
   foldingPolygon.setAttribute('stroke-width', '3');
   if (svgDrawGroup) svgDrawGroup.appendChild(foldingPolygon);
   
-  // Draw crease line AD
   drawLine(ax, ay, dx, dy, t > 0.1 ? 'var(--accent-purple)' : 'var(--text-muted)', 2.5, t > 0.1 ? '' : '4, 4');
   
-  // Draw Angle B (Blue)
   const radBA = Math.atan2(ay - by, ax - bx);
   const pathB = getAngleArcPath(bx, by, 28, 0, radBA * 180 / Math.PI);
   drawPath(pathB, 'var(--accent-blue)', 'rgba(59, 130, 246, 0.15)', 3);
   drawText(bx + 38, by - 12, 'B', '#60a5fa');
   
-  // Draw Angle C (Pink, on the folding vertex C_fold!)
-  // Angle C is swept between C_fold -> A and C_fold -> D
   const radC_tA = Math.atan2(ay - cy_t, ax - cx_t);
   const radC_tD = Math.atan2(dy - cy_t, dx - cx_t);
   const pathC_t = getAngleArcPath(cx_t, cy_t, 25, radC_tD * 180 / Math.PI, radC_tA * 180 / Math.PI);
   drawPath(pathC_t, '#fb7185', 'rgba(251, 113, 133, 0.15)', 3);
   
-  // Angle C Label moves with folding vertex
   drawText(cx_t + 25 * Math.cos((radC_tA + radC_tD)/2), cy_t + 25 * Math.sin((radC_tA + radC_tD)/2), 'C', '#fb7185');
   
-  // Draw labels of points
   drawText(ax, ay - 18, 'A');
   drawText(bx - 12, by + 12, 'B');
   drawText(dx, dy + 15, 'D');
   
-  // If folding completed (t > 0.95), highlight angle 1 (which is Angle AED at E)
   if (t > 0.95) {
-    // Draw angle 1 (Pink)
     const radEA = Math.atan2(ay - ey, ax - ex);
     const radED = Math.atan2(dy - ey, dx - ex);
     const pathE = getAngleArcPath(ex, ey, 25, radED * 180 / Math.PI, radEA * 180 / Math.PI);
     drawPath(pathE, '#fb7185', 'rgba(251, 113, 133, 0.25)', 3);
     drawText(ex + 35, ey + 5, '∠1', '#fb7185');
     
-    // Draw point E marker
     drawCircle(ex, ey, 5, '#fff', 'var(--accent-cyan)', 2.5);
     drawText(ex - 15, ey - 10, 'E');
   }
   
-  // Vertex nodes
   drawCircle(ax, ay, 5, '#fff', 'var(--text-muted)', 2);
   drawCircle(bx, by, 5, '#fff', 'var(--text-muted)', 2);
   drawCircle(cx_t, cy_t, 6, '#fff', 'var(--accent-cyan)', 3);
@@ -751,13 +748,11 @@ function startFoldingAnimation() {
   if (foldingAnimId) cancelAnimationFrame(foldingAnimId);
   
   let start = null;
-  const duration = 1200; // 1.2 seconds for folding
+  const duration = 1200;
   
   function step(timestamp) {
     if (!start) start = timestamp;
     const progress = Math.min(1, (timestamp - start) / duration);
-    
-    // Easing: ease-in-out quad
     const easeProgress = progress < 0.5 
       ? 2 * progress * progress 
       : 1 - Math.pow(-2 * progress + 2, 2) / 2;
@@ -768,12 +763,126 @@ function startFoldingAnimation() {
       foldingAnimId = requestAnimationFrame(step);
     }
   }
-  
   foldingAnimId = requestAnimationFrame(step);
 }
 
-// --- Stage 5: Exterior Angle Theorem ---
-function renderStage5() {
+// --- Stage 5: Folding Proof (Larger Angle -> Longer Side - NEW) ---
+function renderStage5FoldingProof(t = 0) {
+  if (svgDrawGroup) svgDrawGroup.innerHTML = '';
+  
+  const ax = 280, ay = 140;
+  const bx = 60, by = 280;
+  const cx = 320, cy = 280;
+  const ex = 190, ey = 280; // Midpoint of BC
+  const dx = 190, dy = 197; // Perpendicular bisector intersection on AB
+  
+  // Calculate coordinates of folded vertex B along a lifted curve reaching C
+  const bx_t = (1 - t) * bx + t * cx;
+  const by_t = by - 55 * Math.sin(t * Math.PI); // Lift curl
+  
+  // Draw base triangle ABC (faded)
+  const basePolygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+  basePolygon.setAttribute('points', `${ax},${ay} ${bx},${by} ${cx},${cy}`);
+  basePolygon.setAttribute('fill', 'rgba(255, 255, 255, 0.01)');
+  basePolygon.setAttribute('stroke', 'rgba(255, 255, 255, 0.08)');
+  basePolygon.setAttribute('stroke-width', '2.5');
+  if (svgDrawGroup) svgDrawGroup.appendChild(basePolygon);
+  
+  // Draw unfolded left wing (dashed boundary)
+  drawLine(bx, by, dx, dy, 'rgba(255, 255, 255, 0.08)', 2, '3, 3');
+  drawLine(bx, by, ex, ey, 'rgba(255, 255, 255, 0.08)', 2, '3, 3');
+  
+  // Draw folding wing (B_fold E D) with a semi-transparent purple glassmorphic fill
+  const foldingPolygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+  foldingPolygon.setAttribute('points', `${bx_t},${by_t} ${ex},${ey} ${dx},${dy}`);
+  foldingPolygon.setAttribute('fill', 'rgba(168, 85, 247, 0.12)');
+  foldingPolygon.setAttribute('stroke', 'var(--accent-purple)');
+  foldingPolygon.setAttribute('stroke-width', '3');
+  if (svgDrawGroup) svgDrawGroup.appendChild(foldingPolygon);
+  
+  // Draw remaining side segments of triangle ACD
+  drawLine(ax, ay, dx, dy, 'var(--text-secondary)', 2.5);
+  drawLine(ax, ay, cx, cy, 'var(--accent-cyan)', 3);
+  drawLine(ex, ey, cx, cy, 'var(--text-muted)', 2);
+  
+  // Draw crease line DE (perpendicular bisector)
+  drawLine(dx, dy, ex, ey, t > 0.1 ? 'var(--accent-cyan)' : 'var(--text-muted)', 2.5, t > 0.1 ? '' : '4, 4');
+  
+  // Draw Angle B (Blue, sitting on folding vertex B_fold!)
+  const radB_tE = Math.atan2(ey - by_t, ex - bx_t);
+  const radB_tD = Math.atan2(dy - by_t, dx - bx_t);
+  const pathB_t = getAngleArcPath(bx_t, by_t, 25, radB_tD * 180 / Math.PI, radB_tE * 180 / Math.PI);
+  drawPath(pathB_t, 'var(--accent-blue)', 'rgba(59, 130, 246, 0.15)', 3);
+  drawText(bx_t - 15 * Math.cos((radB_tE+radB_tD)/2), by_t - 15 * Math.sin((radB_tE+radB_tD)/2), 'B', '#60a5fa');
+  
+  // Draw Angle C (Pink, at C)
+  const radCA = Math.atan2(ay - cy, ax - cx);
+  const radCE = Math.atan2(ey - cy, ex - cx);
+  const pathC = getAngleArcPath(cx, cy, 28, radCA * 180 / Math.PI, radCE * 180 / Math.PI);
+  drawPath(pathC, '#fb7185', 'rgba(251, 113, 133, 0.15)', 3);
+  drawText(cx - 38, cy - 12, 'C', '#fb7185');
+  
+  // Draw labels of points
+  drawText(ax, ay - 18, 'A');
+  drawText(cx + 12, cy + 12, 'C');
+  drawText(ex, ey + 18, 'E');
+  drawText(dx - 12, dy - 10, 'D');
+  
+  // If folding completed (t > 0.95), show dashed line DC and draw congruence ticks!
+  if (t > 0.95) {
+    drawLine(dx, dy, cx, cy, 'var(--accent-purple)', 2, '4, 4'); // DC line
+    
+    // Draw Ticks on DB and DC
+    const midDBx = (dx + bx) / 2;
+    const midDBy = (dy + by) / 2;
+    const midDCx = (dx + cx) / 2;
+    const midDCy = (dy + cy) / 2;
+    
+    const angDB = Math.atan2(by - dy, bx - dx) + Math.PI/2;
+    const angDC = Math.atan2(cy - dy, cx - dx) + Math.PI/2;
+    const tickLen = 5;
+    
+    drawLine(midDBx - tickLen*Math.cos(angDB), midDBy - tickLen*Math.sin(angDB), 
+             midDBx + tickLen*Math.cos(angDB), midDBy + tickLen*Math.sin(angDB), 'var(--accent-purple)', 2.5);
+    drawLine(midDCx - tickLen*Math.cos(angDC), midDCy - tickLen*Math.sin(angDC), 
+             midDCx + tickLen*Math.cos(angDC), midDCy + tickLen*Math.sin(angDC), 'var(--accent-purple)', 2.5);
+             
+    // Highlight Congruence Ticks with a little text
+    drawText(200, 240, 'DB = DC', 'var(--accent-purple)');
+  }
+  
+  // Vertex nodes
+  drawCircle(ax, ay, 5, '#fff', 'var(--text-muted)', 2);
+  drawCircle(cx, cy, 5, '#fff', 'var(--text-muted)', 2);
+  drawCircle(bx_t, by_t, 6, '#fff', 'var(--accent-purple)', 3);
+  drawCircle(ex, ey, 5, '#fff', 'var(--accent-cyan)', 2.5);
+  drawCircle(dx, dy, 5, '#fff', 'var(--text-muted)', 2);
+}
+
+function startFoldingS5Animation() {
+  if (foldingS5AnimId) cancelAnimationFrame(foldingS5AnimId);
+  
+  let start = null;
+  const duration = 1200;
+  
+  function step(timestamp) {
+    if (!start) start = timestamp;
+    const progress = Math.min(1, (timestamp - start) / duration);
+    const easeProgress = progress < 0.5 
+      ? 2 * progress * progress 
+      : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+    
+    renderStage5FoldingProof(easeProgress);
+    
+    if (progress < 1) {
+      foldingS5AnimId = requestAnimationFrame(step);
+    }
+  }
+  foldingS5AnimId = requestAnimationFrame(step);
+}
+
+// --- Stage 6: Exterior Angle Theorem ---
+function renderStage6() {
   if (svgDrawGroup) svgDrawGroup.innerHTML = '';
   
   const angleB = parseInt(document.getElementById('slider-s4-angB').value);
@@ -785,7 +894,6 @@ function renderStage5() {
   const by = 260;
   const cx = 260;
   const cy = 260;
-  
   const dx = 370;
   const dy = 260;
   
@@ -906,8 +1014,8 @@ function animateExteriorAngleCollage() {
   sectorA.style.transform = `translate(${cx}px, ${cy}px) rotate(${-angleB}deg)`;
 }
 
-// --- Stage 6: Quiz & Results ---
-function renderStage6() {
+// --- Stage 7: Quiz & Results ---
+function renderStage7() {
   if (svgDrawGroup) svgDrawGroup.innerHTML = '';
   
   const trophy = document.createElementNS('http://www.w3.org/2000/svg', 'g');
@@ -1027,8 +1135,6 @@ function checkQuiz(qIdx, optionIdx, btnElement) {
   
   if (expCard) {
     expCard.style.display = 'block';
-    
-    // Trigger typeset specifically on the quiz card to render newly revealed explanation math!
     if (window.MathJax) {
       if (window.MathJax.typesetPromise) {
         window.MathJax.typesetPromise([expCard]);
@@ -1127,3 +1233,4 @@ window.setGlobalStage = setGlobalStage;
 window.checkQuiz = checkQuiz;
 window.animateExteriorAngleCollage = animateExteriorAngleCollage;
 window.startFoldingAnimation = startFoldingAnimation;
+window.startFoldingS5Animation = startFoldingS5Animation;

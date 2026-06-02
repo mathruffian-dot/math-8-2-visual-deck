@@ -1,62 +1,124 @@
-const lessons = [
-  { chapter: "第 1 章", title: "等差數列", accent: "#2463eb", type: "sequence", slider: ["項數", 1, 10, 6], idea: "規律不是背公式，是每一步都增加同樣的量。", action: "拖曳卡片後改變項數", key: "首項、公差、第 n 項", brief: "看見固定增加的節奏" },
-  { chapter: "第 1 章", title: "等差級數", accent: "#079669", type: "series", slider: ["層數", 1, 9, 5], idea: "把一串數加起來，可以先把形狀配成一個好算的矩形。", action: "調整層數，看配對加總", key: "首尾配對、平均值、總和", brief: "用面積感覺加總" },
-  { chapter: "第 1 章", title: "等比數列", accent: "#7c3aed", type: "ratio", slider: ["放大次數", 1, 7, 4], idea: "等比數列的變化不是加多少，而是每一步乘同一個倍率。", action: "調整放大次數", key: "公比、倍數成長", brief: "感受乘法式成長" },
-  { chapter: "第 1 章", title: "費氏數列", accent: "#d88600", type: "fibonacci", slider: ["方塊數", 2, 8, 6], idea: "後一項接住前兩項，規律會自然長出螺旋。", action: "增加方塊，觀察螺旋", key: "前兩項相加、遞迴", brief: "從加法長出圖形" },
-  { chapter: "第 2 章", title: "函數與函數圖形", accent: "#0891b2", type: "function", slider: ["輸入 x", -5, 5, 2], idea: "函數像一台機器：每個輸入，都被規則送到唯一的輸出。", action: "改變輸入值", key: "輸入、輸出、對應、圖形", brief: "把規則變成圖形" },
-  { chapter: "第 2 章", title: "生活中的訊號", accent: "#df3454", type: "signal", slider: ["時間", 1, 10, 5], idea: "生活中的規律訊號，可以用圖形描述變化快慢與週期。", action: "拖曳時間軸", key: "變化率、週期、訊號", brief: "用圖讀懂變化" },
-  { chapter: "第 3 章", title: "三角形內外角", accent: "#2463eb", type: "angles", slider: ["頂點位置", 1, 9, 5], idea: "三角形的三個內角會彼此牽制，外角則等於兩個內對角和。", action: "移動頂點，看角度改變", key: "內角和、外角定理", brief: "角度互相補位" },
-  { chapter: "第 3 章", title: "尺規作圖", accent: "#079669", type: "construction", slider: ["作圖步驟", 1, 5, 3], idea: "尺規作圖不是量出答案，而是用圓弧留下等距的證據。", action: "切換作圖步驟", key: "圓弧、等距、垂直平分", brief: "看見作圖證據" },
-  { chapter: "第 3 章", title: "三角形全等", accent: "#7c3aed", type: "congruence", slider: ["疊合程度", 0, 10, 5], idea: "全等是能完全疊合；條件夠，整個三角形就被鎖定。", action: "調整疊合程度", key: "SSS、SAS、ASA、AAS、RHS", brief: "條件鎖住形狀" },
-  { chapter: "第 3 章", title: "中垂線與角平分線", accent: "#d88600", type: "bisector", slider: ["點的位置", 1, 9, 5], idea: "中垂線管的是到兩端點等距；角平分線管的是到兩邊等距。", action: "移動點，觀察等距", key: "等距軌跡、線段、角", brief: "用等距認識軌跡" },
-  { chapter: "第 3 章", title: "三角形邊角關係", accent: "#0891b2", type: "sideAngle", slider: ["頂點高度", 2, 9, 6], idea: "同一個三角形裡，較大的角會面對較長的邊。", action: "改變頂點高度", key: "大角對大邊、大邊對大角", brief: "邊與角互相排序" },
-  { chapter: "第 3 章", title: "角度面面觀", accent: "#df3454", type: "angleMap", slider: ["轉動角", 0, 10, 4], idea: "角度可以被平移、旋轉、拼補，最後變成可追蹤的關係網。", action: "旋轉角度拼圖", key: "對頂角、補角、同位角", brief: "追蹤角度關係" },
-  { chapter: "第 4 章", title: "平行", accent: "#2463eb", type: "parallel", slider: ["截線角度", 1, 9, 5], idea: "兩線平行時，被截線切出的角會成組相等或互補。", action: "調整截線角度", key: "同位角、內錯角、同側內角", brief: "平行帶來角度規律" },
-  { chapter: "第 4 章", title: "平行四邊形", accent: "#079669", type: "parallelogram", slider: ["傾斜程度", 1, 9, 4], idea: "只要兩組對邊平行，對邊、對角、對角線就會一起出現規律。", action: "拖動傾斜程度", key: "對邊相等、對角相等、對角線互相平分", brief: "一個條件帶出一串性質" },
-  { chapter: "第 4 章", title: "特殊四邊形", accent: "#7c3aed", type: "quadFamily", slider: ["限制條件", 1, 5, 3], idea: "矩形、菱形、正方形不是分開背，是從平行四邊形逐步加限制。", action: "增加限制條件", key: "矩形、菱形、正方形、梯形", brief: "四邊形家族樹" },
-  { chapter: "第 4 章", title: "發現平行之旅", accent: "#d88600", type: "journey", slider: ["任務點", 1, 6, 3], idea: "把平行、角度與四邊形性質串起來，就能做幾何推理。", action: "切換任務點", key: "觀察、猜想、驗證、推理", brief: "從圖形走到證明" }
+const points = [
+  {
+    title: "什麼是平行線",
+    tag: "概念建立",
+    type: "definition",
+    idea: "兩條線方向相同、距離固定，延長也不相交。",
+    action: "調整距離，觀察兩線是否始終保持同樣間隔。",
+    key: "同一平面、不相交、距離固定",
+    question: "只看起來不相交，能不能直接說它們平行？",
+    brief: "看見距離固定"
+  },
+  {
+    title: "截線切出八個角",
+    tag: "命名工具",
+    type: "eightAngles",
+    idea: "一條截線切過兩條直線，會在兩個交點附近產生八個角。",
+    action: "調整截線角度，讓八個角一起改變。",
+    key: "截線、內角、外角、角 1 到角 8",
+    question: "哪些角在兩條線中間？哪些角在線的外側？",
+    brief: "先會找角"
+  },
+  {
+    title: "同位角相等",
+    tag: "平行性質 1",
+    type: "corresponding",
+    idea: "平行線被截線所截，同位角位置相同，角度相等。",
+    action: "改變截線角度，觀察同位角永遠同步。",
+    key: "同位角相等",
+    question: "為什麼角 1 改變時，角 5 也跟著一樣變？",
+    brief: "相同位置相等"
+  },
+  {
+    title: "內錯角相等",
+    tag: "平行性質 2",
+    type: "alternate",
+    idea: "兩條平行線中間、截線兩側的內錯角會相等。",
+    action: "觀察被標出的 Z 字形，追蹤兩個內錯角。",
+    key: "內錯角相等、Z 字形",
+    question: "你能在圖上指出另一組內錯角嗎？",
+    brief: "Z 字形相等"
+  },
+  {
+    title: "同側內角互補",
+    tag: "平行性質 3",
+    type: "sameSide",
+    idea: "兩條平行線中間、截線同一側的兩角相加是 180°。",
+    action: "拖動截線角度，觀察兩角一大一小但總和固定。",
+    key: "同側內角互補、和為 180°",
+    question: "一個角變大時，另一個角為什麼一定變小？",
+    brief: "同側內角合成平角"
+  },
+  {
+    title: "反過來判斷平行",
+    tag: "平行判別",
+    type: "converse",
+    idea: "如果同位角相等、內錯角相等，或同側內角互補，就能判斷兩線平行。",
+    action: "關閉保持平行，再調整角度，觀察判別條件何時失效。",
+    key: "性質反用、判別平行",
+    question: "當角度條件不成立，兩條線還一定平行嗎？",
+    brief: "從角度反推平行"
+  },
+  {
+    title: "求未知角",
+    tag: "解題應用",
+    type: "solve",
+    idea: "先找平行線，再選對角度關係，就能把已知角搬到未知角。",
+    action: "用高亮路徑看角度如何被搬移與補角。",
+    key: "先標平行、再找同位角或內錯角",
+    question: "這題應該用相等，還是用互補？",
+    brief: "把角度搬到目標"
+  },
+  {
+    title: "平行推理地圖",
+    tag: "總整理",
+    type: "map",
+    idea: "看到平行線與截線，就先問：同位、內錯、同側內角是哪一組？",
+    action: "快速切換重點，整理成課堂口訣。",
+    key: "同位相等、內錯相等、同側互補",
+    question: "你能用一句話說明 4-1 平行的核心嗎？",
+    brief: "三句話收束"
+  }
 ];
 
-const chapters = [...new Set(lessons.map((lesson) => lesson.chapter))];
 let currentIndex = 0;
 
 const els = {
-  chapterTabs: document.getElementById("chapterTabs"),
   lessonList: document.getElementById("lessonList"),
   stageKicker: document.getElementById("stageKicker"),
   stageTitle: document.getElementById("stageTitle"),
-  lessonIndex: document.getElementById("lessonIndex"),
-  lessonTotal: document.getElementById("lessonTotal"),
+  pointIndex: document.getElementById("pointIndex"),
+  pointTotal: document.getElementById("pointTotal"),
   bigIdea: document.getElementById("bigIdea"),
   actionText: document.getElementById("actionText"),
   keyText: document.getElementById("keyText"),
-  sliderLabel: document.getElementById("sliderLabel"),
-  sliderValue: document.getElementById("sliderValue"),
-  mainSlider: document.getElementById("mainSlider"),
+  questionText: document.getElementById("questionText"),
+  angleSlider: document.getElementById("angleSlider"),
+  angleValue: document.getElementById("angleValue"),
+  gapSlider: document.getElementById("gapSlider"),
+  gapValue: document.getElementById("gapValue"),
+  parallelToggle: document.getElementById("parallelToggle"),
   visualSvg: document.getElementById("visualSvg"),
   dropZone: document.getElementById("dropZone"),
   progressDots: document.getElementById("progressDots"),
   prevBtn: document.getElementById("prevBtn"),
-  nextBtn: document.getElementById("nextBtn"),
-  shuffleBtn: document.getElementById("shuffleBtn")
+  nextBtn: document.getElementById("nextBtn")
 };
 
 function init() {
-  els.lessonTotal.textContent = String(lessons.length).padStart(2, "0");
-  renderChapterTabs();
-  renderLessonCards(chapters[0]);
+  els.pointTotal.textContent = String(points.length).padStart(2, "0");
+  renderCards();
   renderDots();
   bindEvents();
-  setLesson(0);
+  setPoint(0);
 }
 
 function bindEvents() {
-  els.prevBtn.addEventListener("click", () => setLesson(Math.max(0, currentIndex - 1)));
-  els.nextBtn.addEventListener("click", () => setLesson(Math.min(lessons.length - 1, currentIndex + 1)));
-  els.shuffleBtn.addEventListener("click", () => startTour());
-  els.mainSlider.addEventListener("input", () => {
-    els.sliderValue.textContent = els.mainSlider.value;
-    drawCurrent();
+  els.prevBtn.addEventListener("click", () => setPoint(Math.max(0, currentIndex - 1)));
+  els.nextBtn.addEventListener("click", () => setPoint(Math.min(points.length - 1, currentIndex + 1)));
+  [els.angleSlider, els.gapSlider, els.parallelToggle].forEach((control) => {
+    control.addEventListener("input", drawCurrent);
+    control.addEventListener("change", drawCurrent);
   });
 
   els.dropZone.addEventListener("dragover", (event) => {
@@ -68,7 +130,7 @@ function bindEvents() {
     event.preventDefault();
     els.dropZone.classList.remove("drag-over");
     const idx = Number(event.dataTransfer.getData("text/plain"));
-    if (!Number.isNaN(idx)) setLesson(idx);
+    if (!Number.isNaN(idx)) setPoint(idx);
   });
 
   window.addEventListener("keydown", (event) => {
@@ -77,77 +139,48 @@ function bindEvents() {
   });
 }
 
-function renderChapterTabs() {
-  els.chapterTabs.innerHTML = chapters.map((chapter, idx) => (
-    `<button class="chapter-tab" data-chapter="${chapter}" role="tab">${idx + 1} 章</button>`
-  )).join("");
-
-  els.chapterTabs.querySelectorAll(".chapter-tab").forEach((tab) => {
-    tab.addEventListener("click", () => {
-      renderLessonCards(tab.dataset.chapter);
-      const firstIndex = lessons.findIndex((lesson) => lesson.chapter === tab.dataset.chapter);
-      setLesson(firstIndex);
-    });
-  });
-}
-
-function renderLessonCards(chapter) {
-  els.lessonList.innerHTML = lessons.map((lesson, idx) => {
-    if (lesson.chapter !== chapter) return "";
-    const num = String(idx + 1).padStart(2, "0");
-    return `
-      <article class="lesson-card" style="--accent:${lesson.accent}" draggable="true" data-index="${idx}">
-        <div class="lesson-chip">${num}</div>
-        <div>
-          <h3>${lesson.title}</h3>
-          <p>${lesson.brief}</p>
-        </div>
-      </article>
-    `;
-  }).join("");
+function renderCards() {
+  els.lessonList.innerHTML = points.map((point, idx) => `
+    <article class="lesson-card" draggable="true" data-index="${idx}">
+      <div class="lesson-chip">${idx + 1}</div>
+      <div>
+        <span>${point.tag}</span>
+        <h3>${point.title}</h3>
+        <p>${point.brief}</p>
+      </div>
+    </article>
+  `).join("");
 
   els.lessonList.querySelectorAll(".lesson-card").forEach((card) => {
+    card.addEventListener("click", () => setPoint(Number(card.dataset.index)));
     card.addEventListener("dragstart", (event) => {
       event.dataTransfer.setData("text/plain", card.dataset.index);
     });
-    card.addEventListener("click", () => setLesson(Number(card.dataset.index)));
   });
 }
 
 function renderDots() {
-  els.progressDots.innerHTML = lessons.map((_, idx) => (
-    `<button class="dot" data-index="${idx}" aria-label="前往第 ${idx + 1} 個單元"></button>`
+  els.progressDots.innerHTML = points.map((_, idx) => (
+    `<button class="dot" data-index="${idx}" aria-label="前往重點 ${idx + 1}"></button>`
   )).join("");
   els.progressDots.querySelectorAll(".dot").forEach((dot) => {
-    dot.addEventListener("click", () => setLesson(Number(dot.dataset.index)));
+    dot.addEventListener("click", () => setPoint(Number(dot.dataset.index)));
   });
 }
 
-function setLesson(idx) {
+function setPoint(idx) {
   currentIndex = idx;
-  const lesson = lessons[idx];
-  const [label, min, max, value] = lesson.slider;
-
-  if (!els.lessonList.querySelector(`[data-index="${idx}"]`)) renderLessonCards(lesson.chapter);
-
-  document.documentElement.style.setProperty("--blue", lesson.accent);
-  els.stageKicker.textContent = lesson.chapter;
-  els.stageTitle.textContent = lesson.title;
-  els.lessonIndex.textContent = String(idx + 1).padStart(2, "0");
-  els.bigIdea.textContent = lesson.idea;
-  els.actionText.textContent = lesson.action;
-  els.keyText.textContent = lesson.key;
-  els.sliderLabel.textContent = label;
-  els.mainSlider.min = min;
-  els.mainSlider.max = max;
-  els.mainSlider.value = value;
-  els.sliderValue.textContent = value;
+  const point = points[idx];
+  els.stageKicker.textContent = `重點 ${idx + 1}｜${point.tag}`;
+  els.stageTitle.textContent = point.title;
+  els.pointIndex.textContent = String(idx + 1).padStart(2, "0");
+  els.bigIdea.textContent = point.idea;
+  els.actionText.textContent = point.action;
+  els.keyText.textContent = point.key;
+  els.questionText.textContent = point.question;
   els.prevBtn.disabled = idx === 0;
-  els.nextBtn.disabled = idx === lessons.length - 1;
+  els.nextBtn.disabled = idx === points.length - 1;
 
-  document.querySelectorAll(".chapter-tab").forEach((tab) => {
-    tab.classList.toggle("active", tab.dataset.chapter === lesson.chapter);
-  });
   document.querySelectorAll(".lesson-card").forEach((card) => {
     card.classList.toggle("active", Number(card.dataset.index) === idx);
   });
@@ -158,263 +191,226 @@ function setLesson(idx) {
   drawCurrent();
 }
 
-function startTour() {
-  const next = (currentIndex + 1) % lessons.length;
-  setLesson(next);
-}
-
 function drawCurrent() {
-  const lesson = lessons[currentIndex];
-  const n = Number(els.mainSlider.value);
-  const svg = els.visualSvg;
-  svg.innerHTML = defs(lesson.accent);
-
+  els.angleValue.textContent = `${els.angleSlider.value}°`;
+  els.gapValue.textContent = els.gapSlider.value;
+  const point = points[currentIndex];
+  const state = getState();
+  els.visualSvg.innerHTML = defs();
   const drawer = {
-    sequence: drawSequence,
-    series: drawSeries,
-    ratio: drawRatio,
-    fibonacci: drawFibonacci,
-    function: drawFunction,
-    signal: drawSignal,
-    angles: drawAngles,
-    construction: drawConstruction,
-    congruence: drawCongruence,
-    bisector: drawBisector,
-    sideAngle: drawSideAngle,
-    angleMap: drawAngleMap,
-    parallel: drawParallel,
-    parallelogram: drawParallelogram,
-    quadFamily: drawQuadFamily,
-    journey: drawJourney
-  }[lesson.type];
-
-  drawer(svg, n, lesson);
+    definition: drawDefinition,
+    eightAngles: drawEightAngles,
+    corresponding: drawCorresponding,
+    alternate: drawAlternate,
+    sameSide: drawSameSide,
+    converse: drawConverse,
+    solve: drawSolve,
+    map: drawMap
+  }[point.type];
+  drawer(state);
 }
 
-function defs(color) {
+function getState() {
+  const angle = Number(els.angleSlider.value);
+  const gap = Number(els.gapSlider.value);
+  const keepParallel = els.parallelToggle.checked;
+  const topY = 230 - gap / 2;
+  const bottomY = 230 + gap / 2;
+  const tilt = keepParallel ? 0 : 16;
+  return { angle, gap, keepParallel, topY, bottomY, tilt };
+}
+
+function defs() {
   return `
     <defs>
       <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
-        <path d="M0,0 L0,6 L9,3 z" fill="${color}"></path>
+        <path d="M0,0 L0,6 L9,3 z" fill="#2563eb"></path>
       </marker>
-      <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
-        <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#1e2a44" flood-opacity="0.16"/>
+      <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+        <feDropShadow dx="0" dy="10" stdDeviation="9" flood-color="#172033" flood-opacity="0.14"/>
       </filter>
     </defs>
   `;
 }
 
-function text(x, y, content, cls = "svg-label") {
+function line(x1, y1, x2, y2, cls = "line-main") {
+  return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" class="${cls}"></line>`;
+}
+
+function label(x, y, content, cls = "svg-label") {
   return `<text x="${x}" y="${y}" class="${cls}">${content}</text>`;
 }
 
-function drawSequence(svg, n, lesson) {
-  const blocks = Array.from({ length: n }, (_, i) => {
-    const h = 46 + i * 18;
-    const x = 70 + i * 76;
-    return `<rect x="${x}" y="${390 - h}" width="48" height="${h}" rx="7" fill="${lesson.accent}" opacity="${0.38 + i * 0.055}"></rect>
-      ${text(x + 12, 420, `a${i + 1}`, "svg-note")}`;
-  }).join("");
-  svg.innerHTML += `${text(70, 70, "等差數列：每一步都多同樣的量", "svg-title")}
-    ${text(70, 108, `現在有 ${n} 項，柱子的高度以固定差往上長`, "svg-note")}
-    ${blocks}
-    <path d="M88 250 C160 215, 230 205, 300 170 S460 105, 620 80" class="thin" marker-end="url(#arrow)"></path>`;
+function pill(x, y, content, color = "#2563eb") {
+  return `<rect x="${x}" y="${y}" width="150" height="42" rx="8" fill="${color}" opacity="0.12" stroke="${color}" stroke-width="2"></rect>${label(x + 18, y + 27, content)}`;
 }
 
-function drawSeries(svg, n, lesson) {
-  const rows = Array.from({ length: n }, (_, r) => {
-    const count = r + 2;
-    return Array.from({ length: count }, (_, c) => (
-      `<rect x="${90 + c * 34}" y="${360 - r * 34}" width="28" height="28" rx="5" fill="${lesson.accent}" opacity="${0.42 + r * 0.05}"></rect>`
-    )).join("");
-  }).join("");
-  svg.innerHTML += `${text(70, 70, "等差級數：把階梯配成矩形", "svg-title")}
-    ${text(70, 108, "首尾配對後，每一組的和都一樣", "svg-note")}
-    ${rows}
-    <rect x="520" y="${360 - n * 17}" width="190" height="${n * 34}" rx="10" fill="none" stroke="${lesson.accent}" stroke-width="5" stroke-dasharray="10 8"></rect>
-    ${text(535, 382, "配對後變好算", "svg-label")}`;
+function baseParallel(state, options = {}) {
+  const topEnd = state.keepParallel ? 810 : 810;
+  const bottomEndY = state.bottomY + state.tilt;
+  const top = line(90, state.topY, topEnd, state.topY, "parallel-line");
+  const bottom = line(90, state.bottomY, 810, bottomEndY, state.keepParallel ? "parallel-line" : "warning-line");
+  const rad = state.angle * Math.PI / 180;
+  const cx = 455;
+  const x1 = cx - Math.cos(rad) * 245;
+  const y1 = state.topY - Math.sin(rad) * 245;
+  const x2 = cx + Math.cos(rad) * 245;
+  const y2 = state.bottomY + Math.sin(rad) * 245;
+  const transversal = line(x1, y1, x2, y2, "transversal-line");
+  const badge = state.keepParallel
+    ? pill(690, 54, "兩線保持平行", "#079669")
+    : pill(690, 54, "下方線已偏斜", "#df3454");
+  return `${top}${bottom}${transversal}${badge}${label(110, state.topY - 14, "l", "svg-note")}${label(110, state.bottomY + 28, "m", "svg-note")}${label(x2 - 22, y2 + 32, "截線 t", "svg-note")}`;
 }
 
-function drawRatio(svg, n, lesson) {
-  const circles = Array.from({ length: n }, (_, i) => {
-    const r = 18 + i * 10;
-    return `<circle cx="${110 + i * 95}" cy="285" r="${r}" fill="${lesson.accent}" opacity="${0.22 + i * 0.08}"></circle>
-      ${text(94 + i * 95, 385, `×r`, "svg-note")}`;
-  }).join("");
-  svg.innerHTML += `${text(70, 70, "等比數列：同一倍率連續作用", "svg-title")}
-    ${text(70, 108, "每一項不是加固定數，而是乘固定倍率", "svg-note")}
-    ${circles}
-    <path d="M135 285 H720" class="thin" marker-end="url(#arrow)"></path>`;
+function intersectionPoints(state) {
+  const rad = state.angle * Math.PI / 180;
+  const cx = 455;
+  const top = { x: cx, y: state.topY };
+  const bottom = { x: cx + (state.bottomY - state.topY) / Math.tan(rad), y: state.bottomY };
+  return { top, bottom };
 }
 
-function drawFibonacci(svg, n, lesson) {
-  const sizes = [22, 22, 44, 66, 110, 176, 286, 462];
-  let x = 300;
-  let y = 270;
-  const squares = sizes.slice(0, n).map((s, i) => {
-    const scale = 0.62;
-    const w = s * scale;
-    const dx = [0, 1, 1, -1, -1, 1, 1, -1][i] * w * 0.55;
-    const dy = [0, 0, -1, -1, 1, 1, -1, -1][i] * w * 0.55;
-    x += dx;
-    y += dy;
-    return `<rect x="${x}" y="${y}" width="${w}" height="${w}" fill="none" stroke="${lesson.accent}" stroke-width="4"></rect>`;
-  }).join("");
-  svg.innerHTML += `${text(70, 70, "費氏數列：前兩項合成下一項", "svg-title")}
-    ${text(70, 108, "方塊一路拼接，螺旋感自然出現", "svg-note")}
-    ${squares}
-    <path d="M320 300 C390 205, 520 205, 585 300 S700 420, 760 300" class="bold" stroke="${lesson.accent}" opacity="0.55"></path>`;
+function arc(cx, cy, r, start, end, color, textValue, tx, ty) {
+  const startRad = start * Math.PI / 180;
+  const endRad = end * Math.PI / 180;
+  const large = Math.abs(end - start) > 180 ? 1 : 0;
+  const sweep = end > start ? 1 : 0;
+  const x1 = cx + Math.cos(startRad) * r;
+  const y1 = cy + Math.sin(startRad) * r;
+  const x2 = cx + Math.cos(endRad) * r;
+  const y2 = cy + Math.sin(endRad) * r;
+  return `<path d="M ${x1} ${y1} A ${r} ${r} 0 ${large} ${sweep} ${x2} ${y2}" class="angle-arc" stroke="${color}"></path>${label(tx, ty, textValue, "angle-label")}`;
 }
 
-function drawFunction(svg, n, lesson) {
-  const y = 260 - n * 24;
-  svg.innerHTML += `${text(70, 70, "函數：輸入經過規則，得到唯一輸出", "svg-title")}
-    ${text(70, 108, `輸入 x = ${n}，規則 y = 2x + 1，輸出 y = ${2 * n + 1}`, "svg-note")}
-    <rect x="95" y="205" width="150" height="96" rx="12" fill="#eef4ff" stroke="${lesson.accent}" stroke-width="4"></rect>
-    ${text(132, 263, `x = ${n}`, "svg-label")}
-    <path d="M250 253 H410" class="bold" stroke="${lesson.accent}" marker-end="url(#arrow)"></path>
-    <rect x="415" y="180" width="170" height="146" rx="12" fill="${lesson.accent}" opacity="0.12" stroke="${lesson.accent}" stroke-width="4"></rect>
-    ${text(455, 258, "×2 + 1", "svg-label")}
-    <path d="M590 253 H735" class="bold" stroke="${lesson.accent}" marker-end="url(#arrow)"></path>
-    ${text(750, 263, `y = ${2 * n + 1}`, "svg-label")}
-    <polyline points="100,430 190,380 280,330 370,280 460,230 550,180 640,130" fill="none" stroke="${lesson.accent}" stroke-width="5"></polyline>
-    <circle cx="${460 + n * 18}" cy="${y + 170}" r="9" fill="${lesson.accent}"></circle>`;
+function drawDefinition(state) {
+  els.visualSvg.innerHTML += `
+    ${label(70, 62, "平行線：同一平面內，兩條直線不相交", "svg-title")}
+    ${label(70, 96, "拖動「平行距離」：不管距離變大或變小，只要方向相同，延長後仍不相交。", "svg-note")}
+    ${baseParallel(state)}
+    ${line(160, state.topY, 160, state.bottomY, "measure-line")}
+    ${line(710, state.topY, 710, state.keepParallel ? state.bottomY : state.bottomY + state.tilt * 0.86, "measure-line")}
+    ${label(176, (state.topY + state.bottomY) / 2, "距離固定", "svg-label")}
+    ${state.keepParallel ? label(334, 438, "延長、再延長，仍然不會相交", "result-good") : label(318, 438, "距離開始改變，不能直接判定平行", "result-bad")}
+  `;
 }
 
-function drawSignal(svg, n, lesson) {
-  const points = Array.from({ length: 80 }, (_, i) => {
-    const x = 70 + i * 10;
-    const y = 280 + Math.sin((i + n * 4) / 6) * 78;
-    return `${x},${y}`;
-  }).join(" ");
-  svg.innerHTML += `${text(70, 70, "生活中的訊號：變化也能被畫出來", "svg-title")}
-    ${text(70, 108, "波峰、波谷與週期，讓資料變成能讀的圖形", "svg-note")}
-    <line x1="70" y1="280" x2="820" y2="280" class="thin"></line>
-    <polyline points="${points}" fill="none" stroke="${lesson.accent}" stroke-width="6"></polyline>
-    <circle cx="${70 + n * 70}" cy="${280 + Math.sin((n * 7 + n * 4) / 6) * 78}" r="13" fill="${lesson.accent}"></circle>`;
+function drawEightAngles(state) {
+  const p = intersectionPoints(state);
+  els.visualSvg.innerHTML += `
+    ${label(70, 62, "截線與八個角：先把位置看清楚", "svg-title")}
+    ${label(70, 96, "上交點 1-4，下交點 5-8；兩線中間的是內角，外側的是外角。", "svg-note")}
+    ${baseParallel(state)}
+    ${numberAngles(p.top.x, p.top.y, 1)}
+    ${numberAngles(p.bottom.x, p.bottom.y, 5)}
+    ${pill(90, 438, "外角：1、2、7、8", "#7c3aed")}
+    ${pill(272, 438, "內角：3、4、5、6", "#d88600")}
+  `;
 }
 
-function drawAngles(svg, n, lesson) {
-  const ax = 420 + (n - 5) * 28;
-  const ay = 130 + Math.abs(n - 5) * 10;
-  svg.innerHTML += `${text(70, 70, "三角形內外角：角度會彼此牽制", "svg-title")}
-    ${text(70, 108, "內角和固定，延長一邊就看見外角定理", "svg-note")}
-    <polygon points="${ax},${ay} 210,400 690,400" fill="${lesson.accent}" opacity="0.10" stroke="${lesson.accent}" stroke-width="5"></polygon>
-    <line x1="690" y1="400" x2="810" y2="400" class="bold" stroke="${lesson.accent}"></line>
-    <path d="M640 400 A70 70 0 0 0 705 330" class="bold" stroke="#df3454"></path>
-    ${text(704, 356, "外角", "svg-label")}
-    ${text(ax - 10, ay - 18, "A", "svg-label")}
-    ${text(185, 430, "B", "svg-label")}
-    ${text(682, 430, "C", "svg-label")}`;
+function numberAngles(x, y, start) {
+  return `
+    <circle cx="${x - 48}" cy="${y - 38}" r="19" class="num-circle"></circle>${label(x - 54, y - 31, start, "num-text")}
+    <circle cx="${x + 36}" cy="${y - 42}" r="19" class="num-circle"></circle>${label(x + 30, y - 35, start + 1, "num-text")}
+    <circle cx="${x + 42}" cy="${y + 39}" r="19" class="num-circle"></circle>${label(x + 36, y + 46, start + 2, "num-text")}
+    <circle cx="${x - 43}" cy="${y + 42}" r="19" class="num-circle"></circle>${label(x - 49, y + 49, start + 3, "num-text")}
+  `;
 }
 
-function drawConstruction(svg, n, lesson) {
-  const arcs = [
-    `<circle cx="310" cy="305" r="92" class="thin"></circle>`,
-    `<circle cx="550" cy="305" r="92" class="thin"></circle>`,
-    `<path d="M430 170 V430" class="bold" stroke="${lesson.accent}"></path>`,
-    `<line x1="310" y1="305" x2="550" y2="305" class="bold" stroke="#172033"></line>`,
-    `<circle cx="430" cy="305" r="9" fill="${lesson.accent}"></circle>`
-  ];
-  svg.innerHTML += `${text(70, 70, "尺規作圖：圓弧留下等距證據", "svg-title")}
-    ${text(70, 108, `目前顯示第 ${n} 步`, "svg-note")}
-    ${arcs.slice(0, n).join("")}
-    ${text(295, 335, "A", "svg-label")}
-    ${text(560, 335, "B", "svg-label")}`;
+function drawCorresponding(state) {
+  const p = intersectionPoints(state);
+  const a = state.angle;
+  els.visualSvg.innerHTML += `
+    ${label(70, 62, "同位角：站在相同位置的角", "svg-title")}
+    ${label(70, 96, "角 1 與角 5 都在「左上位置」，平行時角度相等。", "svg-note")}
+    ${baseParallel(state)}
+    ${arc(p.top.x, p.top.y, 62, 180, 180 + a, "#2563eb", `∠1=${a}°`, p.top.x - 120, p.top.y - 54)}
+    ${arc(p.bottom.x, p.bottom.y, 62, 180, 180 + a, "#2563eb", `∠5=${state.keepParallel ? a : a + 12}°`, p.bottom.x - 120, p.bottom.y - 54)}
+    ${line(p.top.x - 86, p.top.y - 92, p.bottom.x - 86, p.bottom.y - 92, "guide-line")}
+    ${state.keepParallel ? label(314, 438, "同位角相等：∠1 = ∠5", "result-good") : label(292, 438, "兩線不平行時，同位角不一定相等", "result-bad")}
+  `;
 }
 
-function drawCongruence(svg, n, lesson) {
-  const offset = 120 - n * 12;
-  svg.innerHTML += `${text(70, 70, "三角形全等：條件足夠就能完全疊合", "svg-title")}
-    ${text(70, 108, "讓兩個三角形逐步疊在一起，感受全等的意思", "svg-note")}
-    <polygon points="255,370 430,160 610,370" fill="${lesson.accent}" opacity="0.16" stroke="${lesson.accent}" stroke-width="5"></polygon>
-    <polygon points="${255 + offset},${370 - offset * 0.15} ${430 + offset},${160 - offset * 0.15} ${610 + offset},${370 - offset * 0.15}" fill="#172033" opacity="0.10" stroke="#172033" stroke-width="5"></polygon>
-    ${text(330, 438, n > 8 ? "完全疊合" : "正在對齊", "svg-label")}`;
+function drawAlternate(state) {
+  const p = intersectionPoints(state);
+  const a = 180 - state.angle;
+  els.visualSvg.innerHTML += `
+    ${label(70, 62, "內錯角：Z 字形裡的兩個內角", "svg-title")}
+    ${label(70, 96, "角 4 與角 6 在兩條線中間、截線兩側；平行時角度相等。", "svg-note")}
+    ${baseParallel(state)}
+    ${line(p.top.x - 92, p.top.y + 42, p.bottom.x + 92, p.bottom.y - 42, "z-line")}
+    ${arc(p.top.x, p.top.y, 58, 0, 180 - state.angle, "#7c3aed", `∠4=${a}°`, p.top.x - 116, p.top.y + 70)}
+    ${arc(p.bottom.x, p.bottom.y, 58, 180, 360 - state.angle, "#7c3aed", `∠6=${state.keepParallel ? a : a - 14}°`, p.bottom.x + 50, p.bottom.y - 56)}
+    ${state.keepParallel ? label(314, 438, "內錯角相等：∠4 = ∠6", "result-good") : label(286, 438, "Z 字形不再穩定，內錯角不一定相等", "result-bad")}
+  `;
 }
 
-function drawBisector(svg, n, lesson) {
-  const px = 430 + (n - 5) * 28;
-  svg.innerHTML += `${text(70, 70, "中垂線與角平分線：等距點排成線", "svg-title")}
-    ${text(70, 108, "點在中垂線上，到線段兩端距離相等", "svg-note")}
-    <line x1="260" y1="340" x2="620" y2="340" class="bold" stroke="#172033"></line>
-    <line x1="440" y1="140" x2="440" y2="460" class="bold" stroke="${lesson.accent}" stroke-dasharray="12 10"></line>
-    <circle cx="${px}" cy="230" r="11" fill="${lesson.accent}"></circle>
-    <line x1="${px}" y1="230" x2="260" y2="340" class="thin"></line>
-    <line x1="${px}" y1="230" x2="620" y2="340" class="thin"></line>
-    ${text(242, 372, "A", "svg-label")}
-    ${text(630, 372, "B", "svg-label")}
-    ${text(px + 15, 224, "P", "svg-label")}`;
+function drawSameSide(state) {
+  const p = intersectionPoints(state);
+  const a = 180 - state.angle;
+  const b = state.angle;
+  const sum = state.keepParallel ? 180 : 166;
+  els.visualSvg.innerHTML += `
+    ${label(70, 62, "同側內角：同一側，合起來是平角", "svg-title")}
+    ${label(70, 96, "角 3 與角 6 在截線同側、兩條線中間；平行時相加 180°。", "svg-note")}
+    ${baseParallel(state)}
+    ${arc(p.top.x, p.top.y, 58, 180 - state.angle, 0, "#d88600", `∠3=${a}°`, p.top.x + 52, p.top.y + 72)}
+    ${arc(p.bottom.x, p.bottom.y, 58, 180, 180 + state.angle, "#d88600", `∠6=${b}°`, p.bottom.x + 52, p.bottom.y - 52)}
+    ${line(p.top.x + 104, p.top.y + 48, p.bottom.x + 104, p.bottom.y - 48, "same-side-line")}
+    ${state.keepParallel ? label(284, 438, `${a}° + ${b}° = 180°，同側內角互補`, "result-good") : label(300, 438, `目前約 ${sum}°，不符合互補條件`, "result-bad")}
+  `;
 }
 
-function drawSideAngle(svg, n, lesson) {
-  const ay = 110 + (10 - n) * 20;
-  svg.innerHTML += `${text(70, 70, "三角形邊角關係：最大角面對最長邊", "svg-title")}
-    ${text(70, 108, "改變頂點高度，邊長與對角排序一起改變", "svg-note")}
-    <polygon points="420,${ay} 210,410 720,410" fill="${lesson.accent}" opacity="0.12" stroke="${lesson.accent}" stroke-width="5"></polygon>
-    <line x1="210" y1="410" x2="720" y2="410" class="bold" stroke="#df3454"></line>
-    <path d="M245 410 A55 55 0 0 1 275 360" class="bold" stroke="#079669"></path>
-    <path d="M680 410 A65 65 0 0 0 640 350" class="bold" stroke="#d88600"></path>
-    ${text(392, ay - 18, "頂點", "svg-label")}
-    ${text(400, 455, "底邊最長時，對面的頂角也最醒目", "svg-label")}`;
+function drawConverse(state) {
+  const p = intersectionPoints(state);
+  const a = state.angle;
+  els.visualSvg.innerHTML += `
+    ${label(70, 62, "判別平行：把性質反過來用", "svg-title")}
+    ${label(70, 96, "只要能證明同位角相等、內錯角相等，或同側內角互補，就能判斷兩線平行。", "svg-note")}
+    ${baseParallel(state)}
+    ${arc(p.top.x, p.top.y, 58, 180, 180 + a, "#2563eb", `已知 ${a}°`, p.top.x - 120, p.top.y - 54)}
+    ${arc(p.bottom.x, p.bottom.y, 58, 180, 180 + a + (state.keepParallel ? 0 : 12), "#2563eb", state.keepParallel ? `${a}°` : `${a + 12}°`, p.bottom.x - 120, p.bottom.y - 54)}
+    ${state.keepParallel ? label(244, 438, "同位角相等，所以 l ∥ m", "result-good") : label(246, 438, "角度條件不成立，不能判斷 l ∥ m", "result-bad")}
+  `;
 }
 
-function drawAngleMap(svg, n, lesson) {
-  const rotate = n * 9;
-  svg.innerHTML += `${text(70, 70, "角度面面觀：把角移動、旋轉、拼補", "svg-title")}
-    ${text(70, 108, "同位角、內錯角、補角都能在圖上追蹤", "svg-note")}
-    <g transform="translate(450 290) rotate(${rotate})">
-      <line x1="-230" y1="0" x2="230" y2="0" class="bold" stroke="${lesson.accent}"></line>
-      <line x1="-120" y1="-140" x2="120" y2="140" class="bold" stroke="#172033"></line>
-      <path d="M0 0 A80 80 0 0 1 62 50" class="bold" stroke="#df3454"></path>
-      <path d="M0 0 A80 80 0 0 0 -62 -50" class="bold" stroke="#079669"></path>
-    </g>
-    ${text(342, 448, "旋轉後，角度關係仍然可以追蹤", "svg-label")}`;
+function drawSolve(state) {
+  const p = intersectionPoints(state);
+  const x = 180 - state.angle;
+  els.visualSvg.innerHTML += `
+    ${label(70, 62, "求未知角：先找關係，再搬角度", "svg-title")}
+    ${label(70, 96, "例：已知一個內錯角，利用平行線性質找到 x。", "svg-note")}
+    ${baseParallel({ ...state, keepParallel: true })}
+    ${arc(p.top.x, p.top.y, 58, 0, x, "#7c3aed", `已知 ${x}°`, p.top.x + 46, p.top.y + 70)}
+    ${arc(p.bottom.x, p.bottom.y, 58, 180, 180 + x, "#7c3aed", `x = ${x}°`, p.bottom.x - 120, p.bottom.y - 52)}
+    ${line(p.top.x + 86, p.top.y + 42, p.bottom.x - 86, p.bottom.y - 42, "z-line")}
+    ${label(240, 438, "因為 l ∥ m，內錯角相等，所以 x 直接等於已知角", "result-good")}
+  `;
 }
 
-function drawParallel(svg, n, lesson) {
-  const x = 360 + (n - 5) * 22;
-  svg.innerHTML += `${text(70, 70, "平行：一條截線切出整組角度規律", "svg-title")}
-    ${text(70, 108, "平行線上的同位角相等，內錯角相等，同側內角互補", "svg-note")}
-    <line x1="130" y1="210" x2="780" y2="210" class="bold" stroke="${lesson.accent}"></line>
-    <line x1="130" y1="370" x2="780" y2="370" class="bold" stroke="${lesson.accent}"></line>
-    <line x1="${x - 150}" y1="110" x2="${x + 150}" y2="470" class="bold" stroke="#172033"></line>
-    <circle cx="${x - 67}" cy="210" r="42" fill="none" stroke="#df3454" stroke-width="5"></circle>
-    <circle cx="${x + 67}" cy="370" r="42" fill="none" stroke="#df3454" stroke-width="5"></circle>
-    ${text(612, 195, "同位角", "svg-label")}`;
+function drawMap() {
+  els.visualSvg.innerHTML += `
+    ${label(70, 62, "4-1 平行推理地圖", "svg-title")}
+    ${label(70, 96, "看到平行線被截線切開，先辨認位置，再選用關係。", "svg-note")}
+    ${flowBox(120, 164, "平行線 + 截線", "#2563eb")}
+    ${flowBox(360, 116, "同位角", "#079669")}
+    ${flowBox(360, 230, "內錯角", "#7c3aed")}
+    ${flowBox(360, 344, "同側內角", "#d88600")}
+    ${flowBox(650, 116, "相等", "#079669")}
+    ${flowBox(650, 230, "相等", "#7c3aed")}
+    ${flowBox(650, 344, "互補 180°", "#d88600")}
+    ${line(280, 208, 360, 150, "flow-line")}
+    ${line(280, 208, 360, 264, "flow-line")}
+    ${line(280, 208, 360, 378, "flow-line")}
+    ${line(520, 150, 650, 150, "flow-line")}
+    ${line(520, 264, 650, 264, "flow-line")}
+    ${line(520, 378, 650, 378, "flow-line")}
+    ${label(190, 488, "口訣：同位相等、內錯相等、同側互補；反過來也能判斷平行。", "result-good")}
+  `;
 }
 
-function drawParallelogram(svg, n, lesson) {
-  const skew = n * 18;
-  svg.innerHTML += `${text(70, 70, "平行四邊形：兩組平行帶出整串性質", "svg-title")}
-    ${text(70, 108, "對邊相等、對角相等，對角線互相平分", "svg-note")}
-    <polygon points="${250 + skew},170 650,170 ${650 - skew},390 250,390" fill="${lesson.accent}" opacity="0.13" stroke="${lesson.accent}" stroke-width="6"></polygon>
-    <line x1="${250 + skew}" y1="170" x2="${650 - skew}" y2="390" class="thin"></line>
-    <line x1="650" y1="170" x2="250" y2="390" class="thin"></line>
-    <circle cx="450" cy="280" r="10" fill="${lesson.accent}"></circle>
-    ${text(384, 452, "對角線交點就是彼此中點", "svg-label")}`;
-}
-
-function drawQuadFamily(svg, n, lesson) {
-  const items = ["四邊形", "平行四邊形", "矩形", "菱形", "正方形"];
-  const visible = items.slice(0, n);
-  svg.innerHTML += `${text(70, 70, "特殊四邊形：從家族樹看限制條件", "svg-title")}
-    ${text(70, 108, "條件越多，圖形越特殊", "svg-note")}
-    ${visible.map((item, i) => `
-      <rect x="${120 + i * 145}" y="${190 + i % 2 * 95}" width="120" height="72" rx="8" fill="${lesson.accent}" opacity="${0.14 + i * 0.08}" stroke="${lesson.accent}" stroke-width="4"></rect>
-      ${text(137 + i * 145, 235 + i % 2 * 95, item, "svg-label")}
-      ${i > 0 ? `<path d="M${95 + i * 145} ${226 + (i - 1) % 2 * 95} H${120 + i * 145}" class="thin" marker-end="url(#arrow)"></path>` : ""}
-    `).join("")}`;
-}
-
-function drawJourney(svg, n, lesson) {
-  const steps = ["觀察", "猜想", "標記", "驗證", "推理", "說明"];
-  svg.innerHTML += `${text(70, 70, "發現平行之旅：把性質串成推理路線", "svg-title")}
-    ${text(70, 108, "幾何不是單點知識，而是一條從圖到證明的路", "svg-note")}
-    ${steps.map((step, i) => `
-      <circle cx="${135 + i * 125}" cy="${285 + Math.sin(i) * 55}" r="42" fill="${lesson.accent}" opacity="${i < n ? 0.85 : 0.18}"></circle>
-      ${text(103 + i * 125, 292 + Math.sin(i) * 55, step, "svg-label")}
-      ${i < steps.length - 1 ? `<path d="M${178 + i * 125} ${285 + Math.sin(i) * 55} H${215 + i * 125}" class="thin" marker-end="url(#arrow)"></path>` : ""}
-    `).join("")}`;
+function flowBox(x, y, content, color) {
+  return `<rect x="${x}" y="${y}" width="160" height="68" rx="10" fill="${color}" opacity="0.12" stroke="${color}" stroke-width="3"></rect>${label(x + 28, y + 42, content, "svg-label")}`;
 }
 
 init();

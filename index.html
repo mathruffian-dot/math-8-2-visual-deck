@@ -3,65 +3,63 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>國中數學八下整冊視覺化互動簡報</title>
-  <meta name="description" content="國中數學八下整冊視覺化拖拉互動 HTML 簡報，涵蓋數列、函數、三角形、尺規作圖、全等、平行與四邊形。">
+  <title>4-1 平行｜互動視覺化簡報</title>
+  <meta name="description" content="國中數學八下 4-1 平行互動視覺化 HTML 簡報，包含平行線、截線八角、同位角、內錯角、同側內角與平行判別。">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <header class="topbar">
     <div>
-      <p class="eyebrow">114 國中數學 2 下</p>
-      <h1>八下數學一眼看懂</h1>
+      <p class="eyebrow">114 國中數學 2 下｜第 4 章</p>
+      <h1>4-1 平行</h1>
     </div>
     <div class="top-actions">
-      <button class="icon-button" id="prevBtn" aria-label="上一個單元" title="上一個單元">
-        <span aria-hidden="true">‹</span>
-      </button>
-      <button class="icon-button" id="nextBtn" aria-label="下一個單元" title="下一個單元">
-        <span aria-hidden="true">›</span>
-      </button>
+      <button class="icon-button" id="prevBtn" aria-label="上一個重點" title="上一個重點">‹</button>
+      <button class="icon-button" id="nextBtn" aria-label="下一個重點" title="下一個重點">›</button>
     </div>
   </header>
 
   <main class="app-shell">
-    <aside class="lesson-panel" aria-label="單元清單">
+    <aside class="lesson-panel" aria-label="4-1 平行教學重點">
       <div class="panel-heading">
-        <h2>拖拉單元卡</h2>
-        <p>把任一張卡拖到右側焦點區，畫面會切換到那個概念的視覺化模型。</p>
+        <h2>教學重點</h2>
+        <p>逐步點選或拖拉重點卡，右側會即時切換成對應的互動圖。</p>
       </div>
-
-      <div class="chapter-tabs" id="chapterTabs" role="tablist" aria-label="章節切換"></div>
       <div class="lesson-list" id="lessonList"></div>
     </aside>
 
     <section class="stage" aria-live="polite">
       <div class="stage-header">
         <div>
-          <p class="stage-kicker" id="stageKicker">第 1 章</p>
-          <h2 id="stageTitle">等差數列</h2>
+          <p class="stage-kicker" id="stageKicker">重點 1</p>
+          <h2 id="stageTitle">什麼是平行線</h2>
         </div>
         <div class="stage-meter">
-          <span id="lessonIndex">01</span>
+          <span id="pointIndex">01</span>
           <span>/</span>
-          <span id="lessonTotal">16</span>
+          <span id="pointTotal">08</span>
         </div>
       </div>
 
       <div class="drop-zone" id="dropZone">
         <div class="visual-wrap">
-          <svg id="visualSvg" viewBox="0 0 900 520" role="img" aria-label="互動數學視覺圖"></svg>
+          <svg id="visualSvg" viewBox="0 0 960 560" role="img" aria-label="4-1 平行互動視覺圖"></svg>
         </div>
         <div class="concept-card">
-          <p class="concept-label">學生要先感受到</p>
-          <h3 id="bigIdea">規律不是背公式，是每一步都增加同樣的量。</h3>
+          <p class="concept-label">學生要先看見</p>
+          <h3 id="bigIdea">兩條線方向相同、距離固定，延長也不相交。</h3>
           <div class="mini-grid">
             <div>
-              <span>操作</span>
-              <strong id="actionText">拖曳卡片或調整滑桿</strong>
+              <span>操作焦點</span>
+              <strong id="actionText">調整距離與截線角度</strong>
             </div>
             <div>
               <span>關鍵語句</span>
-              <strong id="keyText">固定差、項數、首項</strong>
+              <strong id="keyText">同一平面、不相交、距離固定</strong>
+            </div>
+            <div>
+              <span>課堂提問</span>
+              <strong id="questionText">如果兩線延長很久都不交，還需要確認什麼？</strong>
             </div>
           </div>
         </div>
@@ -69,18 +67,26 @@
 
       <div class="control-strip">
         <label class="range-control">
-          <span id="sliderLabel">項數</span>
-          <input id="mainSlider" type="range" min="1" max="10" value="6">
-          <strong id="sliderValue">6</strong>
+          <span>截線角度</span>
+          <input id="angleSlider" type="range" min="28" max="72" value="54">
+          <strong id="angleValue">54°</strong>
         </label>
-        <button class="text-button" id="shuffleBtn">快速巡覽</button>
+        <label class="range-control">
+          <span>平行距離</span>
+          <input id="gapSlider" type="range" min="110" max="210" value="160">
+          <strong id="gapValue">160</strong>
+        </label>
+        <label class="toggle-control">
+          <input id="parallelToggle" type="checkbox" checked>
+          <span>保持平行</span>
+        </label>
       </div>
     </section>
   </main>
 
   <footer class="bottombar">
     <div id="progressDots" class="progress-dots" aria-label="簡報進度"></div>
-    <p>依據教材資料夾章節製作的原創視覺化互動版，不上傳教科書 PDF。</p>
+    <p>單節課版本：只聚焦 4-1 平行，所有圖形皆為原創互動視覺化。</p>
   </footer>
 
   <script src="app.js"></script>

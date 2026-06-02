@@ -1,1236 +1,420 @@
-// --- Global State ---
-let currentStage = 0;
-let stage0AnimId = null;
-let foldingAnimId = null;
-let foldingS5AnimId = null;
-let isDraggingS3Vertex = false;
-
-// --- DOM Elements ---
-const stageBadge = document.getElementById('current-stage-badge');
-const canvasTitle = document.getElementById('canvas-dynamic-title');
-const svgDrawGroup = document.getElementById('svg-draw-group');
-const geometrySvg = document.getElementById('geometry-svg');
-
-// Stage view containers (Expanded to 8 stages)
-const stageViews = [
-  document.getElementById('view-stage-0'),
-  document.getElementById('view-stage-1'),
-  document.getElementById('view-stage-2'),
-  document.getElementById('view-stage-3'),
-  document.getElementById('view-stage-4'),
-  document.getElementById('view-stage-5'),
-  document.getElementById('view-stage-6'),
-  document.getElementById('view-stage-7')
+const lessons = [
+  { chapter: "第 1 章", title: "等差數列", accent: "#2463eb", type: "sequence", slider: ["項數", 1, 10, 6], idea: "規律不是背公式，是每一步都增加同樣的量。", action: "拖曳卡片後改變項數", key: "首項、公差、第 n 項", brief: "看見固定增加的節奏" },
+  { chapter: "第 1 章", title: "等差級數", accent: "#079669", type: "series", slider: ["層數", 1, 9, 5], idea: "把一串數加起來，可以先把形狀配成一個好算的矩形。", action: "調整層數，看配對加總", key: "首尾配對、平均值、總和", brief: "用面積感覺加總" },
+  { chapter: "第 1 章", title: "等比數列", accent: "#7c3aed", type: "ratio", slider: ["放大次數", 1, 7, 4], idea: "等比數列的變化不是加多少，而是每一步乘同一個倍率。", action: "調整放大次數", key: "公比、倍數成長", brief: "感受乘法式成長" },
+  { chapter: "第 1 章", title: "費氏數列", accent: "#d88600", type: "fibonacci", slider: ["方塊數", 2, 8, 6], idea: "後一項接住前兩項，規律會自然長出螺旋。", action: "增加方塊，觀察螺旋", key: "前兩項相加、遞迴", brief: "從加法長出圖形" },
+  { chapter: "第 2 章", title: "函數與函數圖形", accent: "#0891b2", type: "function", slider: ["輸入 x", -5, 5, 2], idea: "函數像一台機器：每個輸入，都被規則送到唯一的輸出。", action: "改變輸入值", key: "輸入、輸出、對應、圖形", brief: "把規則變成圖形" },
+  { chapter: "第 2 章", title: "生活中的訊號", accent: "#df3454", type: "signal", slider: ["時間", 1, 10, 5], idea: "生活中的規律訊號，可以用圖形描述變化快慢與週期。", action: "拖曳時間軸", key: "變化率、週期、訊號", brief: "用圖讀懂變化" },
+  { chapter: "第 3 章", title: "三角形內外角", accent: "#2463eb", type: "angles", slider: ["頂點位置", 1, 9, 5], idea: "三角形的三個內角會彼此牽制，外角則等於兩個內對角和。", action: "移動頂點，看角度改變", key: "內角和、外角定理", brief: "角度互相補位" },
+  { chapter: "第 3 章", title: "尺規作圖", accent: "#079669", type: "construction", slider: ["作圖步驟", 1, 5, 3], idea: "尺規作圖不是量出答案，而是用圓弧留下等距的證據。", action: "切換作圖步驟", key: "圓弧、等距、垂直平分", brief: "看見作圖證據" },
+  { chapter: "第 3 章", title: "三角形全等", accent: "#7c3aed", type: "congruence", slider: ["疊合程度", 0, 10, 5], idea: "全等是能完全疊合；條件夠，整個三角形就被鎖定。", action: "調整疊合程度", key: "SSS、SAS、ASA、AAS、RHS", brief: "條件鎖住形狀" },
+  { chapter: "第 3 章", title: "中垂線與角平分線", accent: "#d88600", type: "bisector", slider: ["點的位置", 1, 9, 5], idea: "中垂線管的是到兩端點等距；角平分線管的是到兩邊等距。", action: "移動點，觀察等距", key: "等距軌跡、線段、角", brief: "用等距認識軌跡" },
+  { chapter: "第 3 章", title: "三角形邊角關係", accent: "#0891b2", type: "sideAngle", slider: ["頂點高度", 2, 9, 6], idea: "同一個三角形裡，較大的角會面對較長的邊。", action: "改變頂點高度", key: "大角對大邊、大邊對大角", brief: "邊與角互相排序" },
+  { chapter: "第 3 章", title: "角度面面觀", accent: "#df3454", type: "angleMap", slider: ["轉動角", 0, 10, 4], idea: "角度可以被平移、旋轉、拼補，最後變成可追蹤的關係網。", action: "旋轉角度拼圖", key: "對頂角、補角、同位角", brief: "追蹤角度關係" },
+  { chapter: "第 4 章", title: "平行", accent: "#2463eb", type: "parallel", slider: ["截線角度", 1, 9, 5], idea: "兩線平行時，被截線切出的角會成組相等或互補。", action: "調整截線角度", key: "同位角、內錯角、同側內角", brief: "平行帶來角度規律" },
+  { chapter: "第 4 章", title: "平行四邊形", accent: "#079669", type: "parallelogram", slider: ["傾斜程度", 1, 9, 4], idea: "只要兩組對邊平行，對邊、對角、對角線就會一起出現規律。", action: "拖動傾斜程度", key: "對邊相等、對角相等、對角線互相平分", brief: "一個條件帶出一串性質" },
+  { chapter: "第 4 章", title: "特殊四邊形", accent: "#7c3aed", type: "quadFamily", slider: ["限制條件", 1, 5, 3], idea: "矩形、菱形、正方形不是分開背，是從平行四邊形逐步加限制。", action: "增加限制條件", key: "矩形、菱形、正方形、梯形", brief: "四邊形家族樹" },
+  { chapter: "第 4 章", title: "發現平行之旅", accent: "#d88600", type: "journey", slider: ["任務點", 1, 6, 3], idea: "把平行、角度與四邊形性質串起來，就能做幾何推理。", action: "切換任務點", key: "觀察、猜想、驗證、推理", brief: "從圖形走到證明" }
 ];
 
-// --- Initialization ---
-window.addEventListener('DOMContentLoaded', () => {
-  setupEventListeners();
-  setStage(0);
-});
+const chapters = [...new Set(lessons.map((lesson) => lesson.chapter))];
+let currentIndex = 0;
 
-// Setup all control event listeners
-function setupEventListeners() {
-  // Presentation Controls: keyboard navigation (Arrow keys)
-  window.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowRight' || e.key === 'Right') {
-      nextSlide();
-    } else if (e.key === 'ArrowLeft' || e.key === 'Left') {
-      prevSlide();
-    }
+const els = {
+  chapterTabs: document.getElementById("chapterTabs"),
+  lessonList: document.getElementById("lessonList"),
+  stageKicker: document.getElementById("stageKicker"),
+  stageTitle: document.getElementById("stageTitle"),
+  lessonIndex: document.getElementById("lessonIndex"),
+  lessonTotal: document.getElementById("lessonTotal"),
+  bigIdea: document.getElementById("bigIdea"),
+  actionText: document.getElementById("actionText"),
+  keyText: document.getElementById("keyText"),
+  sliderLabel: document.getElementById("sliderLabel"),
+  sliderValue: document.getElementById("sliderValue"),
+  mainSlider: document.getElementById("mainSlider"),
+  visualSvg: document.getElementById("visualSvg"),
+  dropZone: document.getElementById("dropZone"),
+  progressDots: document.getElementById("progressDots"),
+  prevBtn: document.getElementById("prevBtn"),
+  nextBtn: document.getElementById("nextBtn"),
+  shuffleBtn: document.getElementById("shuffleBtn")
+};
+
+function init() {
+  els.lessonTotal.textContent = String(lessons.length).padStart(2, "0");
+  renderChapterTabs();
+  renderLessonCards(chapters[0]);
+  renderDots();
+  bindEvents();
+  setLesson(0);
+}
+
+function bindEvents() {
+  els.prevBtn.addEventListener("click", () => setLesson(Math.max(0, currentIndex - 1)));
+  els.nextBtn.addEventListener("click", () => setLesson(Math.min(lessons.length - 1, currentIndex + 1)));
+  els.shuffleBtn.addEventListener("click", () => startTour());
+  els.mainSlider.addEventListener("input", () => {
+    els.sliderValue.textContent = els.mainSlider.value;
+    drawCurrent();
   });
 
-  // Stage 1 sliders (Triangle Inequality)
-  const s1a = document.getElementById('slider-s1-a');
-  const s1b = document.getElementById('slider-s1-b');
-  const s1c = document.getElementById('slider-s1-c');
-  const updateS1 = () => {
-    document.getElementById('val-s1-a').innerText = s1a.value;
-    document.getElementById('val-s1-b').innerText = s1b.value;
-    document.getElementById('val-s1-c').innerText = s1c.value;
-    renderStage1();
-  };
-  if (s1a) s1a.addEventListener('input', updateS1);
-  if (s1b) s1b.addEventListener('input', updateS1);
-  if (s1c) s1c.addEventListener('input', updateS1);
-
-  // Stage 2 sliders (Isosceles)
-  const s2angle = document.getElementById('slider-s2-angle');
-  const s2leg = document.getElementById('slider-s2-leg');
-  const updateS2 = () => {
-    document.getElementById('val-s2-angle').innerText = s2angle.value + '°';
-    document.getElementById('val-s2-leg').innerText = s2leg.value;
-    renderStage2();
-  };
-  if (s2angle) s2angle.addEventListener('input', updateS2);
-  if (s2leg) s2leg.addEventListener('input', updateS2);
-
-  // Stage 3 sliders (Side-Angle Inequality)
-  const s3x = document.getElementById('slider-s3-x');
-  const s3y = document.getElementById('slider-s3-y');
-  const updateS3 = () => {
-    document.getElementById('val-s3-x').innerText = s3x.value;
-    document.getElementById('val-s3-y').innerText = s3y.value;
-    renderStage3();
-  };
-  if (s3x) s3x.addEventListener('input', updateS3);
-  if (s3y) s3y.addEventListener('input', updateS3);
-
-  // Stage 4 Folding Proof Button
-  const btnAnimateFolding = document.getElementById('btn-animate-folding');
-  if (btnAnimateFolding) btnAnimateFolding.addEventListener('click', startFoldingAnimation);
-
-  // Stage 5 Folding Proof Button (NEW)
-  const btnAnimateFoldingS5 = document.getElementById('btn-animate-folding-s5');
-  if (btnAnimateFoldingS5) btnAnimateFoldingS5.addEventListener('click', startFoldingS5Animation);
-
-  // Stage 6 sliders (Exterior Angle)
-  const s4angA = document.getElementById('slider-s4-angA');
-  const s4angB = document.getElementById('slider-s4-angB');
-  const updateS4 = () => {
-    document.getElementById('val-s4-angA').innerText = s4angA.value + '°';
-    document.getElementById('val-s4-angB').innerText = s4angB.value + '°';
-    renderStage6();
-  };
-  if (s4angA) s4angA.addEventListener('input', updateS4);
-  if (s4angB) s4angB.addEventListener('input', updateS4);
-
-  const btnAnimateExt = document.getElementById('btn-animate-exterior');
-  if (btnAnimateExt) btnAnimateExt.addEventListener('click', animateExteriorAngleCollage);
-
-  // Support direct drag in SVG for Stage 3 vertex A
-  if (geometrySvg) {
-    geometrySvg.addEventListener('mousedown', startS3Drag);
-    geometrySvg.addEventListener('mousemove', dragS3Vertex);
-    window.addEventListener('mouseup', stopS3Drag);
-
-    geometrySvg.addEventListener('touchstart', startS3Drag, { passive: false });
-    geometrySvg.addEventListener('touchmove', dragS3Vertex, { passive: false });
-    window.addEventListener('touchend', stopS3Drag);
-  }
-}
-
-// --- Slide Switch Functions ---
-function prevSlide() {
-  if (currentStage > 0) {
-    setStage(currentStage - 1);
-  }
-}
-
-function nextSlide() {
-  if (currentStage < 7) { // Expanded limit to 7 (8 slides total)
-    setStage(currentStage + 1);
-  }
-}
-
-// Set global active stage (called by dots click and button click)
-function setGlobalStage(idx) {
-  setStage(idx);
-}
-
-function setStage(stageIdx) {
-  // Clean up animations
-  if (stage0AnimId) {
-    cancelAnimationFrame(stage0AnimId);
-    stage0AnimId = null;
-  }
-  if (foldingAnimId) {
-    cancelAnimationFrame(foldingAnimId);
-    foldingAnimId = null;
-  }
-  if (foldingS5AnimId) {
-    cancelAnimationFrame(foldingS5AnimId);
-    foldingS5AnimId = null;
-  }
-  
-  currentStage = stageIdx;
-
-  // Update badges & UI controls
-  const stageNames = [
-    "導覽：學習大綱", 
-    "核心一：三角不等式", 
-    "核心二：等腰三角形", 
-    "核心三：大角對大邊", 
-    "核心四：大邊對大角證明", 
-    "核心五：大角對大邊證明", 
-    "核心六：外角定理", 
-    "挑戰：學習評量"
-  ];
-  if (stageBadge) stageBadge.innerText = stageNames[stageIdx];
-  if (canvasTitle) canvasTitle.innerText = "幾何動態模擬畫布 - " + stageNames[stageIdx].split('：')[1];
-
-  // Disable Prev/Next at boundaries
-  const btnPrev = document.getElementById('btn-prev-slide');
-  const btnNext = document.getElementById('btn-next-slide');
-  if (btnPrev) btnPrev.disabled = (stageIdx === 0);
-  if (btnNext) btnNext.disabled = (stageIdx === 7);
-
-  // Update dot indicators active class
-  const slideDots = document.querySelectorAll('.slide-dot');
-  slideDots.forEach((dot, idx) => {
-    if (idx === stageIdx) {
-      dot.classList.add('active');
-      if (idx % 2 !== 0) {
-        dot.classList.add('active-purple');
-      } else {
-        dot.classList.remove('active-purple');
-      }
-    } else {
-      dot.classList.remove('active', 'active-purple');
-    }
+  els.dropZone.addEventListener("dragover", (event) => {
+    event.preventDefault();
+    els.dropZone.classList.add("drag-over");
+  });
+  els.dropZone.addEventListener("dragleave", () => els.dropZone.classList.remove("drag-over"));
+  els.dropZone.addEventListener("drop", (event) => {
+    event.preventDefault();
+    els.dropZone.classList.remove("drag-over");
+    const idx = Number(event.dataTransfer.getData("text/plain"));
+    if (!Number.isNaN(idx)) setLesson(idx);
   });
 
-  // Switch card views
-  stageViews.forEach((view, idx) => {
-    if (view) {
-      if (idx === stageIdx) {
-        view.classList.add('active');
-      } else {
-        view.classList.remove('active');
-      }
-    }
+  window.addEventListener("keydown", (event) => {
+    if (event.key === "ArrowRight") els.nextBtn.click();
+    if (event.key === "ArrowLeft") els.prevBtn.click();
   });
-
-  // Clear drawing group
-  if (svgDrawGroup) svgDrawGroup.innerHTML = '';
-
-  // Render stage-specific graphics
-  switch(stageIdx) {
-    case 0:
-      startStage0OverviewAnim();
-      break;
-    case 1:
-      renderStage1();
-      break;
-    case 2:
-      renderStage2();
-      break;
-    case 3:
-      renderStage3();
-      break;
-    case 4:
-      renderStage4FoldingProof(0); // Initialize unfolded
-      break;
-    case 5:
-      renderStage5FoldingProof(0); // Initialize unfolded
-      break;
-    case 6:
-      renderStage6();
-      break;
-    case 7:
-      renderStage7();
-      break;
-  }
-
-  // Trigger MathJax typeset on slide transition asynchronously
-  if (window.MathJax) {
-    if (window.MathJax.typesetPromise) {
-      window.MathJax.typesetPromise();
-    } else if (window.MathJax.typeset) {
-      window.MathJax.typeset();
-    }
-  }
 }
 
-// --- Helper Functions ---
-function getAngleArcPath(cx, cy, r, startAngle, endAngle) {
-  let diff = endAngle - startAngle;
-  while (diff < -180) diff += 360;
-  while (diff > 180) diff -= 360;
-  
-  const startRad = (startAngle * Math.PI) / 180;
-  const endRad = ((startAngle + diff) * Math.PI) / 180;
-  
-  const x1 = cx + r * Math.cos(startRad);
-  const y1 = cy + r * Math.sin(startRad);
-  const x2 = cx + r * Math.cos(endRad);
-  const y2 = cy + r * Math.sin(endRad);
-  
-  const largeArcFlag = "0"; // Always 0 for interior triangle angles (< 180 deg)
-  const sweepFlag = diff > 0 ? "1" : "0";
-  
-  return `M ${x1} ${y1} A ${r} ${r} 0 ${largeArcFlag} ${sweepFlag} ${x2} ${y2}`;
-}
+function renderChapterTabs() {
+  els.chapterTabs.innerHTML = chapters.map((chapter, idx) => (
+    `<button class="chapter-tab" data-chapter="${chapter}" role="tab">${idx + 1} 章</button>`
+  )).join("");
 
-// Calculate angle between three vertices: angle at p2
-function calculateAngle(p1, p2, p3) {
-  const d12 = Math.hypot(p1.x - p2.x, p1.y - p2.y);
-  const d23 = Math.hypot(p3.x - p2.x, p3.y - p2.y);
-  const d13 = Math.hypot(p1.x - p3.x, p1.y - p3.y);
-  
-  const cosVal = (d12*d12 + d23*d23 - d13*d13) / (2 * d12 * d23);
-  return Math.acos(Math.max(-1, Math.min(1, cosVal))) * (180 / Math.PI);
-}
-
-// Get screen coords to SVG viewport coords
-function getSVGCoords(e) {
-  const rect = geometrySvg.getBoundingClientRect();
-  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-  
-  return {
-    x: ((clientX - rect.left) / rect.width) * 400,
-    y: ((clientY - rect.top) / rect.height) * 400
-  };
-}
-
-// --- Drag & Drop Handlers for Stage 3 ---
-function startS3Drag(e) {
-  if (currentStage !== 3) return;
-  const coords = getSVGCoords(e);
-  const ax = parseFloat(document.getElementById('slider-s3-x').value);
-  const ay = parseFloat(document.getElementById('slider-s3-y').value);
-  
-  const dist = Math.hypot(coords.x - ax, coords.y - ay);
-  if (dist < 22) {
-    isDraggingS3Vertex = true;
-    geometrySvg.style.cursor = 'grabbing';
-    e.preventDefault();
-  }
-}
-
-function dragS3Vertex(e) {
-  if (currentStage !== 3 || !isDraggingS3Vertex) return;
-  e.preventDefault();
-  const coords = getSVGCoords(e);
-  
-  const cx = Math.max(10, Math.min(390, coords.x));
-  const cy = Math.max(50, Math.min(270, coords.y));
-  
-  document.getElementById('slider-s3-x').value = Math.round(cx);
-  document.getElementById('slider-s3-y').value = Math.round(cy);
-  document.getElementById('val-s3-x').innerText = Math.round(cx);
-  document.getElementById('val-s3-y').innerText = Math.round(cy);
-  
-  renderStage3();
-}
-
-function stopS3Drag() {
-  if (currentStage === 3 && isDraggingS3Vertex) {
-    isDraggingS3Vertex = false;
-    geometrySvg.style.cursor = 'default';
-  }
-}
-
-// ==========================================
-// RENDERERS FOR INDIVIDUAL STAGES
-// ==========================================
-
-// --- Stage 0: Overview rotating triangle ---
-function startStage0OverviewAnim() {
-  let angle = 0;
-  
-  function tick() {
-    if (currentStage !== 0) return;
-    
-    angle = (angle + 0.6) % 360;
-    
-    if (svgDrawGroup) svgDrawGroup.innerHTML = '';
-    
-    const rad = (angle * Math.PI) / 180;
-    const r = 90;
-    
-    const ax = 200 + r * Math.cos(rad - Math.PI/2);
-    const ay = 200 + r * Math.sin(rad - Math.PI/2);
-    const bx = 200 + r * Math.cos(rad + Math.PI/6);
-    const by = 200 + r * Math.sin(rad + Math.PI/6);
-    const cx = 200 + r * Math.cos(rad + 5*Math.PI/6);
-    const cy = 200 + r * Math.sin(rad + 5*Math.PI/6);
-    
-    const orbital = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    orbital.setAttribute('cx', '200');
-    orbital.setAttribute('cy', '200');
-    orbital.setAttribute('r', '90');
-    orbital.setAttribute('fill', 'none');
-    orbital.setAttribute('stroke', 'rgba(168, 85, 247, 0.15)');
-    orbital.setAttribute('stroke-dasharray', '5, 5');
-    if (svgDrawGroup) svgDrawGroup.appendChild(orbital);
-    
-    const tri = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-    tri.setAttribute('points', `${ax},${ay} ${bx},${by} ${cx},${cy}`);
-    tri.setAttribute('fill', 'none');
-    tri.setAttribute('stroke', 'url(#stage0-neon-grad)');
-    tri.setAttribute('stroke-width', '3');
-    tri.setAttribute('filter', 'drop-shadow(0 0 10px rgba(6, 182, 212, 0.5))');
-    if (svgDrawGroup) svgDrawGroup.appendChild(tri);
-    
-    [ {x: ax, label: 'A', color: '#06b6d4'}, 
-      {x: bx, label: 'B', color: '#a855f7'}, 
-      {x: cx, label: 'C', color: '#fbbf24'} 
-    ].forEach((node, i) => {
-      const cy_node = i===0 ? ay : (i===1 ? by : cy);
-      const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      dot.setAttribute('cx', node.x);
-      dot.setAttribute('cy', cy_node);
-      dot.setAttribute('r', '6');
-      dot.setAttribute('fill', '#fff');
-      dot.setAttribute('stroke', node.color);
-      dot.setAttribute('stroke-width', '3');
-      if (svgDrawGroup) svgDrawGroup.appendChild(dot);
+  els.chapterTabs.querySelectorAll(".chapter-tab").forEach((tab) => {
+    tab.addEventListener("click", () => {
+      renderLessonCards(tab.dataset.chapter);
+      const firstIndex = lessons.findIndex((lesson) => lesson.chapter === tab.dataset.chapter);
+      setLesson(firstIndex);
     });
-
-    if (!document.getElementById('stage0-neon-grad')) {
-      const defs = geometrySvg.querySelector('defs');
-      if (defs) {
-        const grad = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
-        grad.setAttribute('id', 'stage0-neon-grad');
-        grad.setAttribute('x1', '0%');
-        grad.setAttribute('y1', '0%');
-        grad.setAttribute('x2', '100%');
-        grad.setAttribute('y2', '100%');
-        
-        const s1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-        s1.setAttribute('offset', '0%');
-        s1.setAttribute('stop-color', '#06b6d4');
-        const s2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-        s2.setAttribute('offset', '100%');
-        s2.setAttribute('stop-color', '#a855f7');
-        
-        grad.appendChild(s1);
-        grad.appendChild(s2);
-        defs.appendChild(grad);
-      }
-    }
-    
-    stage0AnimId = requestAnimationFrame(tick);
-  }
-  
-  tick();
+  });
 }
 
-// --- Stage 1: Triangle Inequality ---
-function renderStage1() {
-  if (svgDrawGroup) svgDrawGroup.innerHTML = '';
-  
-  const sideA = parseInt(document.getElementById('slider-s1-a').value);
-  const sideB = parseInt(document.getElementById('slider-s1-b').value);
-  const sideC = parseInt(document.getElementById('slider-s1-c').value);
-  
-  const bx = 200 - sideC / 2;
-  const by = 240;
-  const cx = 200 + sideC / 2;
-  const cy = 240;
-  
-  const statusLabel = document.getElementById('triangle-inequality-status');
-  const canForm = (sideA + sideB > sideC) && (sideA + sideC > sideB) && (sideB + sideC > sideA);
-  
-  if (canForm) {
-    const cosB = (sideA*sideA + sideC*sideC - sideB*sideB) / (2 * sideA * sideC);
-    const angleB = Math.acos(cosB);
-    
-    const ax = bx + sideA * Math.cos(angleB);
-    const ay = by - sideA * Math.sin(angleB);
-    
-    const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-    polygon.setAttribute('points', `${bx},${by} ${ax},${ay} ${cx},${cy}`);
-    polygon.setAttribute('class', 'svg-triangle');
-    if (svgDrawGroup) svgDrawGroup.appendChild(polygon);
-    
-    drawLine(bx, by, ax, ay, 'var(--accent-cyan)', 3);
-    drawLine(cx, cy, ax, ay, 'var(--accent-purple)', 3);
-    
-    drawCircle(ax, ay, 6, '#fff', 'var(--accent-cyan)', 3);
-    drawText(ax, ay - 18, 'A');
-    
-    drawText((bx + ax)/2 - 18, (by + ay)/2 - 10, sideA, '#67e8f9');
-    drawText((cx + ax)/2 + 18, (cy + ay)/2 - 10, sideB, '#c084fc');
-    
-    if (statusLabel) {
-      statusLabel.innerHTML = '✅ <strong>可構成三角形：</strong>任兩邊長之和皆大於第三邊。';
-      statusLabel.style.borderColor = 'rgba(16, 185, 129, 0.4)';
-      statusLabel.style.background = 'rgba(16, 185, 129, 0.08)';
-      statusLabel.style.color = '#34d399';
-    }
-    
-  } else {
-    let thetaB = 0;
-    let thetaC = Math.PI;
-    
-    if (sideA + sideB <= sideC) {
-      thetaB = -15 * Math.PI / 180;
-      thetaC = 195 * Math.PI / 180;
-    }
-    
-    const ax1 = bx + sideA * Math.cos(thetaB);
-    const ay1 = by + sideA * Math.sin(thetaB);
-    
-    const ax2 = cx + sideB * Math.cos(thetaC);
-    const ay2 = cy + sideB * Math.sin(thetaC);
-    
-    drawLine(bx, by, cx, cy, 'var(--text-muted)', 2.5);
-    drawLine(bx, by, ax1, ay1, '#f43f5e', 3.5, '5,5');
-    drawLine(cx, cy, ax2, ay2, '#f43f5e', 3.5, '5,5');
-    
-    drawCircle(ax1, ay1, 5, '#f43f5e', '#fff', 1.5);
-    drawCircle(ax2, ay2, 5, '#f43f5e', '#fff', 1.5);
-    
-    if (sideA + sideB <= sideC) {
-      drawLine(ax1, by, ax2, by, '#f43f5e', 3);
-      drawText(200, by + 18, `無法碰合！缺口長度: ${Math.round(sideC - (sideA + sideB))}`, '#fb7185');
-    } else {
-      drawText(200, by + 18, `單邊太長無法構成！`, '#fb7185');
-    }
-    
-    if (statusLabel) {
-      statusLabel.innerHTML = '❌ <strong>無法構成三角形：</strong>不滿足「兩邊之和大於第三邊」！';
-      statusLabel.style.borderColor = 'rgba(244, 63, 94, 0.4)';
-      statusLabel.style.background = 'rgba(244, 63, 94, 0.08)';
-      statusLabel.style.color = '#fb7185';
-    }
-  }
-  
-  drawCircle(bx, by, 6, '#fff', 'var(--text-primary)', 3);
-  drawCircle(cx, cy, 6, '#fff', 'var(--text-primary)', 3);
-  drawText(bx - 12, by + 12, 'B');
-  drawText(cx + 12, cy + 12, 'C');
-  drawText(200, by - 12, sideC, '#94a3b8');
+function renderLessonCards(chapter) {
+  els.lessonList.innerHTML = lessons.map((lesson, idx) => {
+    if (lesson.chapter !== chapter) return "";
+    const num = String(idx + 1).padStart(2, "0");
+    return `
+      <article class="lesson-card" style="--accent:${lesson.accent}" draggable="true" data-index="${idx}">
+        <div class="lesson-chip">${num}</div>
+        <div>
+          <h3>${lesson.title}</h3>
+          <p>${lesson.brief}</p>
+        </div>
+      </article>
+    `;
+  }).join("");
+
+  els.lessonList.querySelectorAll(".lesson-card").forEach((card) => {
+    card.addEventListener("dragstart", (event) => {
+      event.dataTransfer.setData("text/plain", card.dataset.index);
+    });
+    card.addEventListener("click", () => setLesson(Number(card.dataset.index)));
+  });
 }
 
-// --- Stage 2: Isosceles Triangle ---
-function renderStage2() {
-  if (svgDrawGroup) svgDrawGroup.innerHTML = '';
-  
-  const apexAngle = parseInt(document.getElementById('slider-s2-angle').value);
-  const legLength = parseInt(document.getElementById('slider-s2-leg').value);
-  
-  const baseAngle = (180 - apexAngle) / 2;
-  
-  const ax = 200;
-  const ay = 150;
-  
-  const radApexHalf = (apexAngle / 2) * Math.PI / 180;
-  const bx = ax - legLength * Math.sin(radApexHalf);
-  const by = ay + legLength * Math.cos(radApexHalf);
-  const cx = ax + legLength * Math.sin(radApexHalf);
-  const cy = ay + legLength * Math.cos(radApexHalf);
-  
-  const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-  polygon.setAttribute('points', `${ax},${ay} ${bx},${by} ${cx},${cy}`);
-  polygon.setAttribute('class', 'svg-triangle');
-  polygon.setAttribute('style', 'fill: rgba(168, 85, 247, 0.1); stroke: var(--accent-purple); stroke-width: 3;');
-  if (svgDrawGroup) svgDrawGroup.appendChild(polygon);
-  
-  drawLine(ax, ay, bx, by, 'var(--accent-cyan)', 3.5);
-  drawLine(ax, ay, cx, cy, 'var(--accent-cyan)', 3.5);
-  drawLine(bx, by, cx, cy, 'var(--text-muted)', 2);
-  
-  const midABx = (ax + bx) / 2;
-  const midABy = (ay + by) / 2;
-  const midACx = (ax + cx) / 2;
-  const midACy = (ay + cy) / 2;
-  const angAB = Math.atan2(by - ay, bx - ax) + Math.PI/2;
-  const angAC = Math.atan2(cy - ay, cx - ax) + Math.PI/2;
-  
-  const tickLen = 6;
-  drawLine(midABx - tickLen*Math.cos(angAB), midABy - tickLen*Math.sin(angAB), 
-           midABx + tickLen*Math.cos(angAB), midABy + tickLen*Math.sin(angAB), 'var(--accent-cyan)', 2.5);
-  drawLine(midACx - tickLen*Math.cos(angAC), midACy - tickLen*Math.sin(angAC), 
-           midACx + tickLen*Math.cos(angAC), midACy + tickLen*Math.sin(angAC), 'var(--accent-cyan)', 2.5);
-
-  const bArc = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  const radAB = Math.atan2(ay - by, ax - bx);
-  const angABDeg = radAB * 180 / Math.PI;
-  bArc.setAttribute('d', getAngleArcPath(bx, by, 30, angABDeg, 0));
-  bArc.setAttribute('class', 'svg-angle-arc');
-  bArc.setAttribute('stroke', 'var(--accent-purple)');
-  bArc.setAttribute('fill', 'rgba(168, 85, 247, 0.15)');
-  if (svgDrawGroup) svgDrawGroup.appendChild(bArc);
-  
-  const cArc = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  const radAC = Math.atan2(ay - cy, ax - cx);
-  const angACDeg = radAC * 180 / Math.PI;
-  cArc.setAttribute('d', getAngleArcPath(cx, cy, 30, 180, angACDeg));
-  cArc.setAttribute('class', 'svg-angle-arc');
-  cArc.setAttribute('stroke', 'var(--accent-purple)');
-  cArc.setAttribute('fill', 'rgba(168, 85, 247, 0.15)');
-  if (svgDrawGroup) svgDrawGroup.appendChild(cArc);
-  
-  drawText(bx + 35, by - 12, `${baseAngle.toFixed(0)}°`, '#c084fc');
-  drawText(cx - 35, cy - 12, `${baseAngle.toFixed(0)}°`, '#c084fc');
-  drawText(ax, ay + 30, `${apexAngle}°`, '#67e8f9');
-  
-  drawCircle(ax, ay, 6, '#fff', 'var(--accent-cyan)', 3);
-  drawCircle(bx, by, 5, '#fff', 'var(--text-primary)', 2);
-  drawCircle(cx, cy, 5, '#fff', 'var(--text-primary)', 2);
-  
-  drawText(ax, ay - 18, 'A');
-  drawText(bx - 12, by + 12, 'B');
-  drawText(cx + 12, cy + 12, 'C');
-  
-  drawText(midABx - 22, midABy - 5, legLength, '#22d3ee');
-  drawText(midACx + 22, midACy - 5, legLength, '#22d3ee');
-  drawText((bx+cx)/2, by + 18, `底邊長: ${Math.round(2 * legLength * Math.sin(radApexHalf))}`, '#64748b');
+function renderDots() {
+  els.progressDots.innerHTML = lessons.map((_, idx) => (
+    `<button class="dot" data-index="${idx}" aria-label="前往第 ${idx + 1} 個單元"></button>`
+  )).join("");
+  els.progressDots.querySelectorAll(".dot").forEach((dot) => {
+    dot.addEventListener("click", () => setLesson(Number(dot.dataset.index)));
+  });
 }
 
-// --- Stage 3: Larger Angle / Larger Side ---
-function renderStage3() {
-  if (svgDrawGroup) svgDrawGroup.innerHTML = '';
-  
-  const ax = parseFloat(document.getElementById('slider-s3-x').value);
-  const ay = parseFloat(document.getElementById('slider-s3-y').value);
-  
-  const bx = 80;
-  const by = 280;
-  const cx = 320;
-  const cy = 280;
-  
-  const pA = { x: ax, y: ay };
-  const pB = { x: bx, y: by };
-  const pC = { x: cx, y: cy };
-  
-  const side_a = Math.round(Math.hypot(cx - bx, cy - by)); // Side BC
-  const side_b = Math.round(Math.hypot(ax - cx, ay - cy)); // Side AC
-  const side_c = Math.round(Math.hypot(ax - bx, ay - by)); // Side AB
-  
-  const angle_A = calculateAngle(pB, pA, pC);
-  const angle_B = calculateAngle(pA, pB, pC);
-  const angle_C = 180 - angle_A - angle_B;
-  
-  const sides = [
-    { label: 'a', val: side_a, elemId: 'badge-side-a', oppAngle: 'A' },
-    { label: 'b', val: side_b, elemId: 'badge-side-b', oppAngle: 'B' },
-    { label: 'c', val: side_c, elemId: 'badge-side-c', oppAngle: 'C' }
+function setLesson(idx) {
+  currentIndex = idx;
+  const lesson = lessons[idx];
+  const [label, min, max, value] = lesson.slider;
+
+  if (!els.lessonList.querySelector(`[data-index="${idx}"]`)) renderLessonCards(lesson.chapter);
+
+  document.documentElement.style.setProperty("--blue", lesson.accent);
+  els.stageKicker.textContent = lesson.chapter;
+  els.stageTitle.textContent = lesson.title;
+  els.lessonIndex.textContent = String(idx + 1).padStart(2, "0");
+  els.bigIdea.textContent = lesson.idea;
+  els.actionText.textContent = lesson.action;
+  els.keyText.textContent = lesson.key;
+  els.sliderLabel.textContent = label;
+  els.mainSlider.min = min;
+  els.mainSlider.max = max;
+  els.mainSlider.value = value;
+  els.sliderValue.textContent = value;
+  els.prevBtn.disabled = idx === 0;
+  els.nextBtn.disabled = idx === lessons.length - 1;
+
+  document.querySelectorAll(".chapter-tab").forEach((tab) => {
+    tab.classList.toggle("active", tab.dataset.chapter === lesson.chapter);
+  });
+  document.querySelectorAll(".lesson-card").forEach((card) => {
+    card.classList.toggle("active", Number(card.dataset.index) === idx);
+  });
+  document.querySelectorAll(".dot").forEach((dot) => {
+    dot.classList.toggle("active", Number(dot.dataset.index) === idx);
+  });
+
+  drawCurrent();
+}
+
+function startTour() {
+  const next = (currentIndex + 1) % lessons.length;
+  setLesson(next);
+}
+
+function drawCurrent() {
+  const lesson = lessons[currentIndex];
+  const n = Number(els.mainSlider.value);
+  const svg = els.visualSvg;
+  svg.innerHTML = defs(lesson.accent);
+
+  const drawer = {
+    sequence: drawSequence,
+    series: drawSeries,
+    ratio: drawRatio,
+    fibonacci: drawFibonacci,
+    function: drawFunction,
+    signal: drawSignal,
+    angles: drawAngles,
+    construction: drawConstruction,
+    congruence: drawCongruence,
+    bisector: drawBisector,
+    sideAngle: drawSideAngle,
+    angleMap: drawAngleMap,
+    parallel: drawParallel,
+    parallelogram: drawParallelogram,
+    quadFamily: drawQuadFamily,
+    journey: drawJourney
+  }[lesson.type];
+
+  drawer(svg, n, lesson);
+}
+
+function defs(color) {
+  return `
+    <defs>
+      <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L9,3 z" fill="${color}"></path>
+      </marker>
+      <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+        <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#1e2a44" flood-opacity="0.16"/>
+      </filter>
+    </defs>
+  `;
+}
+
+function text(x, y, content, cls = "svg-label") {
+  return `<text x="${x}" y="${y}" class="${cls}">${content}</text>`;
+}
+
+function drawSequence(svg, n, lesson) {
+  const blocks = Array.from({ length: n }, (_, i) => {
+    const h = 46 + i * 18;
+    const x = 70 + i * 76;
+    return `<rect x="${x}" y="${390 - h}" width="48" height="${h}" rx="7" fill="${lesson.accent}" opacity="${0.38 + i * 0.055}"></rect>
+      ${text(x + 12, 420, `a${i + 1}`, "svg-note")}`;
+  }).join("");
+  svg.innerHTML += `${text(70, 70, "等差數列：每一步都多同樣的量", "svg-title")}
+    ${text(70, 108, `現在有 ${n} 項，柱子的高度以固定差往上長`, "svg-note")}
+    ${blocks}
+    <path d="M88 250 C160 215, 230 205, 300 170 S460 105, 620 80" class="thin" marker-end="url(#arrow)"></path>`;
+}
+
+function drawSeries(svg, n, lesson) {
+  const rows = Array.from({ length: n }, (_, r) => {
+    const count = r + 2;
+    return Array.from({ length: count }, (_, c) => (
+      `<rect x="${90 + c * 34}" y="${360 - r * 34}" width="28" height="28" rx="5" fill="${lesson.accent}" opacity="${0.42 + r * 0.05}"></rect>`
+    )).join("");
+  }).join("");
+  svg.innerHTML += `${text(70, 70, "等差級數：把階梯配成矩形", "svg-title")}
+    ${text(70, 108, "首尾配對後，每一組的和都一樣", "svg-note")}
+    ${rows}
+    <rect x="520" y="${360 - n * 17}" width="190" height="${n * 34}" rx="10" fill="none" stroke="${lesson.accent}" stroke-width="5" stroke-dasharray="10 8"></rect>
+    ${text(535, 382, "配對後變好算", "svg-label")}`;
+}
+
+function drawRatio(svg, n, lesson) {
+  const circles = Array.from({ length: n }, (_, i) => {
+    const r = 18 + i * 10;
+    return `<circle cx="${110 + i * 95}" cy="285" r="${r}" fill="${lesson.accent}" opacity="${0.22 + i * 0.08}"></circle>
+      ${text(94 + i * 95, 385, `×r`, "svg-note")}`;
+  }).join("");
+  svg.innerHTML += `${text(70, 70, "等比數列：同一倍率連續作用", "svg-title")}
+    ${text(70, 108, "每一項不是加固定數，而是乘固定倍率", "svg-note")}
+    ${circles}
+    <path d="M135 285 H720" class="thin" marker-end="url(#arrow)"></path>`;
+}
+
+function drawFibonacci(svg, n, lesson) {
+  const sizes = [22, 22, 44, 66, 110, 176, 286, 462];
+  let x = 300;
+  let y = 270;
+  const squares = sizes.slice(0, n).map((s, i) => {
+    const scale = 0.62;
+    const w = s * scale;
+    const dx = [0, 1, 1, -1, -1, 1, 1, -1][i] * w * 0.55;
+    const dy = [0, 0, -1, -1, 1, 1, -1, -1][i] * w * 0.55;
+    x += dx;
+    y += dy;
+    return `<rect x="${x}" y="${y}" width="${w}" height="${w}" fill="none" stroke="${lesson.accent}" stroke-width="4"></rect>`;
+  }).join("");
+  svg.innerHTML += `${text(70, 70, "費氏數列：前兩項合成下一項", "svg-title")}
+    ${text(70, 108, "方塊一路拼接，螺旋感自然出現", "svg-note")}
+    ${squares}
+    <path d="M320 300 C390 205, 520 205, 585 300 S700 420, 760 300" class="bold" stroke="${lesson.accent}" opacity="0.55"></path>`;
+}
+
+function drawFunction(svg, n, lesson) {
+  const y = 260 - n * 24;
+  svg.innerHTML += `${text(70, 70, "函數：輸入經過規則，得到唯一輸出", "svg-title")}
+    ${text(70, 108, `輸入 x = ${n}，規則 y = 2x + 1，輸出 y = ${2 * n + 1}`, "svg-note")}
+    <rect x="95" y="205" width="150" height="96" rx="12" fill="#eef4ff" stroke="${lesson.accent}" stroke-width="4"></rect>
+    ${text(132, 263, `x = ${n}`, "svg-label")}
+    <path d="M250 253 H410" class="bold" stroke="${lesson.accent}" marker-end="url(#arrow)"></path>
+    <rect x="415" y="180" width="170" height="146" rx="12" fill="${lesson.accent}" opacity="0.12" stroke="${lesson.accent}" stroke-width="4"></rect>
+    ${text(455, 258, "×2 + 1", "svg-label")}
+    <path d="M590 253 H735" class="bold" stroke="${lesson.accent}" marker-end="url(#arrow)"></path>
+    ${text(750, 263, `y = ${2 * n + 1}`, "svg-label")}
+    <polyline points="100,430 190,380 280,330 370,280 460,230 550,180 640,130" fill="none" stroke="${lesson.accent}" stroke-width="5"></polyline>
+    <circle cx="${460 + n * 18}" cy="${y + 170}" r="9" fill="${lesson.accent}"></circle>`;
+}
+
+function drawSignal(svg, n, lesson) {
+  const points = Array.from({ length: 80 }, (_, i) => {
+    const x = 70 + i * 10;
+    const y = 280 + Math.sin((i + n * 4) / 6) * 78;
+    return `${x},${y}`;
+  }).join(" ");
+  svg.innerHTML += `${text(70, 70, "生活中的訊號：變化也能被畫出來", "svg-title")}
+    ${text(70, 108, "波峰、波谷與週期，讓資料變成能讀的圖形", "svg-note")}
+    <line x1="70" y1="280" x2="820" y2="280" class="thin"></line>
+    <polyline points="${points}" fill="none" stroke="${lesson.accent}" stroke-width="6"></polyline>
+    <circle cx="${70 + n * 70}" cy="${280 + Math.sin((n * 7 + n * 4) / 6) * 78}" r="13" fill="${lesson.accent}"></circle>`;
+}
+
+function drawAngles(svg, n, lesson) {
+  const ax = 420 + (n - 5) * 28;
+  const ay = 130 + Math.abs(n - 5) * 10;
+  svg.innerHTML += `${text(70, 70, "三角形內外角：角度會彼此牽制", "svg-title")}
+    ${text(70, 108, "內角和固定，延長一邊就看見外角定理", "svg-note")}
+    <polygon points="${ax},${ay} 210,400 690,400" fill="${lesson.accent}" opacity="0.10" stroke="${lesson.accent}" stroke-width="5"></polygon>
+    <line x1="690" y1="400" x2="810" y2="400" class="bold" stroke="${lesson.accent}"></line>
+    <path d="M640 400 A70 70 0 0 0 705 330" class="bold" stroke="#df3454"></path>
+    ${text(704, 356, "外角", "svg-label")}
+    ${text(ax - 10, ay - 18, "A", "svg-label")}
+    ${text(185, 430, "B", "svg-label")}
+    ${text(682, 430, "C", "svg-label")}`;
+}
+
+function drawConstruction(svg, n, lesson) {
+  const arcs = [
+    `<circle cx="310" cy="305" r="92" class="thin"></circle>`,
+    `<circle cx="550" cy="305" r="92" class="thin"></circle>`,
+    `<path d="M430 170 V430" class="bold" stroke="${lesson.accent}"></path>`,
+    `<line x1="310" y1="305" x2="550" y2="305" class="bold" stroke="#172033"></line>`,
+    `<circle cx="430" cy="305" r="9" fill="${lesson.accent}"></circle>`
   ];
-  
-  const angles = [
-    { label: 'A', val: angle_A, elemId: 'badge-angle-a', oppSide: 'a' },
-    { label: 'B', val: angle_B, elemId: 'badge-angle-b', oppSide: 'b' },
-    { label: 'C', val: angle_C, elemId: 'badge-angle-c', oppSide: 'c' }
-  ];
-  
-  const sortedSides = [...sides].sort((x, y) => y.val - x.val);
-  const sortedAngles = [...angles].sort((x, y) => y.val - x.val);
-  
-  const getTierClass = (rank) => {
-    if (rank === 0) return { name: '最大', style: 'badge-largest', color: 'var(--tier-largest)' };
-    if (rank === 1) return { name: '中', style: 'badge-medium', color: 'var(--tier-medium)' };
-    return { name: '最小', style: 'badge-smallest', color: 'var(--tier-smallest)' };
-  };
-  
-  sides.forEach(s => {
-    const rank = sortedSides.findIndex(ss => ss.label === s.label);
-    const tier = getTierClass(rank);
-    const badge = document.getElementById(s.elemId);
-    if (badge) {
-      badge.innerText = `${s.val} (${tier.name})`;
-      badge.className = `data-badge ${tier.style}`;
-    }
-    s.color = tier.color;
-  });
-  
-  angles.forEach(ang => {
-    const rank = sortedAngles.findIndex(sa => sa.label === ang.label);
-    const tier = getTierClass(rank);
-    const badge = document.getElementById(ang.elemId);
-    if (badge) {
-      badge.innerText = `${ang.val.toFixed(0)}° (${tier.name})`;
-      badge.className = `data-badge ${tier.style}`;
-    }
-    ang.color = tier.color;
-  });
-
-  drawLine(ax, ay, bx, by, sides.find(s => s.label === 'c').color, 4);
-  drawLine(ax, ay, cx, cy, sides.find(s => s.label === 'b').color, 4);
-  drawLine(bx, by, cx, cy, sides.find(s => s.label === 'a').color, 4);
-  
-  const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-  polygon.setAttribute('points', `${ax},${ay} ${bx},${by} ${cx},${cy}`);
-  polygon.setAttribute('fill', 'rgba(255,255,255,0.02)');
-  polygon.setAttribute('stroke', 'none');
-  if (svgDrawGroup) svgDrawGroup.appendChild(polygon);
-
-  const radBC = Math.atan2(cy - by, cx - bx);
-  const radBA = Math.atan2(ay - by, ax - bx);
-  const pathB = getAngleArcPath(bx, by, 32, radBC*180/Math.PI, radBA*180/Math.PI);
-  drawPath(pathB, angles.find(a => a.label === 'B').color, 'rgba(255,255,255,0.05)', 3);
-
-  const radCA = Math.atan2(ay - cy, ax - cx);
-  const radCB = Math.atan2(by - cy, bx - cx);
-  const pathC = getAngleArcPath(cx, cy, 32, radCA*180/Math.PI, radCB*180/Math.PI);
-  drawPath(pathC, angles.find(a => a.label === 'C').color, 'rgba(255,255,255,0.05)', 3);
-
-  const radAC = Math.atan2(cy - ay, cx - ax);
-  const radAB = Math.atan2(by - ay, bx - ax);
-  const pathA = getAngleArcPath(ax, ay, 32, radAC*180/Math.PI, radAB*180/Math.PI);
-  drawPath(pathA, angles.find(a => a.label === 'A').color, 'rgba(255,255,255,0.05)', 3);
-
-  drawText(bx - 12, by + 12, 'B');
-  drawText(cx + 12, cy + 12, 'C');
-  drawText(ax, ay - 18, 'A');
-  
-  const handleGlow = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-  handleGlow.setAttribute('cx', ax);
-  handleGlow.setAttribute('cy', ay);
-  handleGlow.setAttribute('r', '15');
-  handleGlow.setAttribute('fill', 'rgba(6, 182, 212, 0.15)');
-  handleGlow.setAttribute('style', 'cursor: grab;');
-  if (svgDrawGroup) svgDrawGroup.appendChild(handleGlow);
-  
-  drawCircle(ax, ay, 7, '#fff', 'var(--accent-cyan)', 3);
-  drawCircle(bx, by, 5, '#fff', 'var(--text-muted)', 2);
-  drawCircle(cx, cy, 5, '#fff', 'var(--text-muted)', 2);
+  svg.innerHTML += `${text(70, 70, "尺規作圖：圓弧留下等距證據", "svg-title")}
+    ${text(70, 108, `目前顯示第 ${n} 步`, "svg-note")}
+    ${arcs.slice(0, n).join("")}
+    ${text(295, 335, "A", "svg-label")}
+    ${text(560, 335, "B", "svg-label")}`;
 }
 
-// --- Stage 4: Folding Proof (Longer Side -> Larger Angle) ---
-function renderStage4FoldingProof(t = 0) {
-  if (svgDrawGroup) svgDrawGroup.innerHTML = '';
-  
-  const ax = 280, ay = 140;
-  const bx = 60, by = 280;
-  const cx = 320, cy = 280;
-  const dx = 227, dy = 280;
-  const ex = 157, ey = 218;
-  
-  const cx_t = (1 - t) * cx + t * ex - 25 * Math.sin(t * Math.PI);
-  const cy_t = (1 - t) * cy + t * ey - 45 * Math.sin(t * Math.PI);
-  
-  const basePolygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-  basePolygon.setAttribute('points', `${ax},${ay} ${bx},${by} ${cx},${cy}`);
-  basePolygon.setAttribute('fill', 'rgba(255, 255, 255, 0.01)');
-  basePolygon.setAttribute('stroke', 'rgba(255, 255, 255, 0.08)');
-  basePolygon.setAttribute('stroke-width', '2.5');
-  if (svgDrawGroup) svgDrawGroup.appendChild(basePolygon);
-  
-  drawLine(bx, by, dx, dy, 'var(--text-muted)', 2);
-  drawLine(bx, by, ex, ey, 'var(--text-muted)', 2);
-  
-  const rightWing = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-  rightWing.setAttribute('points', `${ax},${ay} ${cx},${cy} ${dx},${dy}`);
-  rightWing.setAttribute('fill', 'none');
-  rightWing.setAttribute('stroke', 'rgba(255, 255, 255, 0.08)');
-  rightWing.setAttribute('stroke-width', '2');
-  rightWing.setAttribute('stroke-dasharray', '3, 3');
-  if (svgDrawGroup) svgDrawGroup.appendChild(rightWing);
-  
-  const foldingPolygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-  foldingPolygon.setAttribute('points', `${ax},${ay} ${cx_t},${cy_t} ${dx},${dy}`);
-  foldingPolygon.setAttribute('fill', 'rgba(6, 182, 212, 0.12)');
-  foldingPolygon.setAttribute('stroke', 'var(--accent-cyan)');
-  foldingPolygon.setAttribute('stroke-width', '3');
-  if (svgDrawGroup) svgDrawGroup.appendChild(foldingPolygon);
-  
-  drawLine(ax, ay, dx, dy, t > 0.1 ? 'var(--accent-purple)' : 'var(--text-muted)', 2.5, t > 0.1 ? '' : '4, 4');
-  
-  const radBA = Math.atan2(ay - by, ax - bx);
-  const pathB = getAngleArcPath(bx, by, 28, 0, radBA * 180 / Math.PI);
-  drawPath(pathB, 'var(--accent-blue)', 'rgba(59, 130, 246, 0.15)', 3);
-  drawText(bx + 38, by - 12, 'B', '#60a5fa');
-  
-  const radC_tA = Math.atan2(ay - cy_t, ax - cx_t);
-  const radC_tD = Math.atan2(dy - cy_t, dx - cx_t);
-  const pathC_t = getAngleArcPath(cx_t, cy_t, 25, radC_tD * 180 / Math.PI, radC_tA * 180 / Math.PI);
-  drawPath(pathC_t, '#fb7185', 'rgba(251, 113, 133, 0.15)', 3);
-  
-  drawText(cx_t + 25 * Math.cos((radC_tA + radC_tD)/2), cy_t + 25 * Math.sin((radC_tA + radC_tD)/2), 'C', '#fb7185');
-  
-  drawText(ax, ay - 18, 'A');
-  drawText(bx - 12, by + 12, 'B');
-  drawText(dx, dy + 15, 'D');
-  
-  if (t > 0.95) {
-    const radEA = Math.atan2(ay - ey, ax - ex);
-    const radED = Math.atan2(dy - ey, dx - ex);
-    const pathE = getAngleArcPath(ex, ey, 25, radED * 180 / Math.PI, radEA * 180 / Math.PI);
-    drawPath(pathE, '#fb7185', 'rgba(251, 113, 133, 0.25)', 3);
-    drawText(ex + 35, ey + 5, '∠1', '#fb7185');
-    
-    drawCircle(ex, ey, 5, '#fff', 'var(--accent-cyan)', 2.5);
-    drawText(ex - 15, ey - 10, 'E');
-  }
-  
-  drawCircle(ax, ay, 5, '#fff', 'var(--text-muted)', 2);
-  drawCircle(bx, by, 5, '#fff', 'var(--text-muted)', 2);
-  drawCircle(cx_t, cy_t, 6, '#fff', 'var(--accent-cyan)', 3);
-  drawCircle(dx, dy, 5, '#fff', 'var(--accent-purple)', 2.5);
+function drawCongruence(svg, n, lesson) {
+  const offset = 120 - n * 12;
+  svg.innerHTML += `${text(70, 70, "三角形全等：條件足夠就能完全疊合", "svg-title")}
+    ${text(70, 108, "讓兩個三角形逐步疊在一起，感受全等的意思", "svg-note")}
+    <polygon points="255,370 430,160 610,370" fill="${lesson.accent}" opacity="0.16" stroke="${lesson.accent}" stroke-width="5"></polygon>
+    <polygon points="${255 + offset},${370 - offset * 0.15} ${430 + offset},${160 - offset * 0.15} ${610 + offset},${370 - offset * 0.15}" fill="#172033" opacity="0.10" stroke="#172033" stroke-width="5"></polygon>
+    ${text(330, 438, n > 8 ? "完全疊合" : "正在對齊", "svg-label")}`;
 }
 
-function startFoldingAnimation() {
-  if (foldingAnimId) cancelAnimationFrame(foldingAnimId);
-  
-  let start = null;
-  const duration = 1200;
-  
-  function step(timestamp) {
-    if (!start) start = timestamp;
-    const progress = Math.min(1, (timestamp - start) / duration);
-    const easeProgress = progress < 0.5 
-      ? 2 * progress * progress 
-      : 1 - Math.pow(-2 * progress + 2, 2) / 2;
-    
-    renderStage4FoldingProof(easeProgress);
-    
-    if (progress < 1) {
-      foldingAnimId = requestAnimationFrame(step);
-    }
-  }
-  foldingAnimId = requestAnimationFrame(step);
+function drawBisector(svg, n, lesson) {
+  const px = 430 + (n - 5) * 28;
+  svg.innerHTML += `${text(70, 70, "中垂線與角平分線：等距點排成線", "svg-title")}
+    ${text(70, 108, "點在中垂線上，到線段兩端距離相等", "svg-note")}
+    <line x1="260" y1="340" x2="620" y2="340" class="bold" stroke="#172033"></line>
+    <line x1="440" y1="140" x2="440" y2="460" class="bold" stroke="${lesson.accent}" stroke-dasharray="12 10"></line>
+    <circle cx="${px}" cy="230" r="11" fill="${lesson.accent}"></circle>
+    <line x1="${px}" y1="230" x2="260" y2="340" class="thin"></line>
+    <line x1="${px}" y1="230" x2="620" y2="340" class="thin"></line>
+    ${text(242, 372, "A", "svg-label")}
+    ${text(630, 372, "B", "svg-label")}
+    ${text(px + 15, 224, "P", "svg-label")}`;
 }
 
-// --- Stage 5: Folding Proof (Larger Angle -> Longer Side - NEW) ---
-function renderStage5FoldingProof(t = 0) {
-  if (svgDrawGroup) svgDrawGroup.innerHTML = '';
-  
-  const ax = 280, ay = 140;
-  const bx = 60, by = 280;
-  const cx = 320, cy = 280;
-  const ex = 190, ey = 280; // Midpoint of BC
-  const dx = 190, dy = 197; // Perpendicular bisector intersection on AB
-  
-  // Calculate coordinates of folded vertex B along a lifted curve reaching C
-  const bx_t = (1 - t) * bx + t * cx;
-  const by_t = by - 55 * Math.sin(t * Math.PI); // Lift curl
-  
-  // Draw base triangle ABC (faded)
-  const basePolygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-  basePolygon.setAttribute('points', `${ax},${ay} ${bx},${by} ${cx},${cy}`);
-  basePolygon.setAttribute('fill', 'rgba(255, 255, 255, 0.01)');
-  basePolygon.setAttribute('stroke', 'rgba(255, 255, 255, 0.08)');
-  basePolygon.setAttribute('stroke-width', '2.5');
-  if (svgDrawGroup) svgDrawGroup.appendChild(basePolygon);
-  
-  // Draw unfolded left wing (dashed boundary)
-  drawLine(bx, by, dx, dy, 'rgba(255, 255, 255, 0.08)', 2, '3, 3');
-  drawLine(bx, by, ex, ey, 'rgba(255, 255, 255, 0.08)', 2, '3, 3');
-  
-  // Draw folding wing (B_fold E D) with a semi-transparent purple glassmorphic fill
-  const foldingPolygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-  foldingPolygon.setAttribute('points', `${bx_t},${by_t} ${ex},${ey} ${dx},${dy}`);
-  foldingPolygon.setAttribute('fill', 'rgba(168, 85, 247, 0.12)');
-  foldingPolygon.setAttribute('stroke', 'var(--accent-purple)');
-  foldingPolygon.setAttribute('stroke-width', '3');
-  if (svgDrawGroup) svgDrawGroup.appendChild(foldingPolygon);
-  
-  // Draw remaining side segments of triangle ACD
-  drawLine(ax, ay, dx, dy, 'var(--text-secondary)', 2.5);
-  drawLine(ax, ay, cx, cy, 'var(--accent-cyan)', 3);
-  drawLine(ex, ey, cx, cy, 'var(--text-muted)', 2);
-  
-  // Draw crease line DE (perpendicular bisector)
-  drawLine(dx, dy, ex, ey, t > 0.1 ? 'var(--accent-cyan)' : 'var(--text-muted)', 2.5, t > 0.1 ? '' : '4, 4');
-  
-  // Draw Angle B (Blue, sitting on folding vertex B_fold!)
-  const radB_tE = Math.atan2(ey - by_t, ex - bx_t);
-  const radB_tD = Math.atan2(dy - by_t, dx - bx_t);
-  const pathB_t = getAngleArcPath(bx_t, by_t, 25, radB_tD * 180 / Math.PI, radB_tE * 180 / Math.PI);
-  drawPath(pathB_t, 'var(--accent-blue)', 'rgba(59, 130, 246, 0.15)', 3);
-  drawText(bx_t - 15 * Math.cos((radB_tE+radB_tD)/2), by_t - 15 * Math.sin((radB_tE+radB_tD)/2), 'B', '#60a5fa');
-  
-  // Draw Angle C (Pink, at C)
-  const radCA = Math.atan2(ay - cy, ax - cx);
-  const radCE = Math.atan2(ey - cy, ex - cx);
-  const pathC = getAngleArcPath(cx, cy, 28, radCA * 180 / Math.PI, radCE * 180 / Math.PI);
-  drawPath(pathC, '#fb7185', 'rgba(251, 113, 133, 0.15)', 3);
-  drawText(cx - 38, cy - 12, 'C', '#fb7185');
-  
-  // Draw labels of points
-  drawText(ax, ay - 18, 'A');
-  drawText(cx + 12, cy + 12, 'C');
-  drawText(ex, ey + 18, 'E');
-  drawText(dx - 12, dy - 10, 'D');
-  
-  // If folding completed (t > 0.95), show dashed line DC and draw congruence ticks!
-  if (t > 0.95) {
-    drawLine(dx, dy, cx, cy, 'var(--accent-purple)', 2, '4, 4'); // DC line
-    
-    // Draw Ticks on DB and DC
-    const midDBx = (dx + bx) / 2;
-    const midDBy = (dy + by) / 2;
-    const midDCx = (dx + cx) / 2;
-    const midDCy = (dy + cy) / 2;
-    
-    const angDB = Math.atan2(by - dy, bx - dx) + Math.PI/2;
-    const angDC = Math.atan2(cy - dy, cx - dx) + Math.PI/2;
-    const tickLen = 5;
-    
-    drawLine(midDBx - tickLen*Math.cos(angDB), midDBy - tickLen*Math.sin(angDB), 
-             midDBx + tickLen*Math.cos(angDB), midDBy + tickLen*Math.sin(angDB), 'var(--accent-purple)', 2.5);
-    drawLine(midDCx - tickLen*Math.cos(angDC), midDCy - tickLen*Math.sin(angDC), 
-             midDCx + tickLen*Math.cos(angDC), midDCy + tickLen*Math.sin(angDC), 'var(--accent-purple)', 2.5);
-             
-    // Highlight Congruence Ticks with a little text
-    drawText(200, 240, 'DB = DC', 'var(--accent-purple)');
-  }
-  
-  // Vertex nodes
-  drawCircle(ax, ay, 5, '#fff', 'var(--text-muted)', 2);
-  drawCircle(cx, cy, 5, '#fff', 'var(--text-muted)', 2);
-  drawCircle(bx_t, by_t, 6, '#fff', 'var(--accent-purple)', 3);
-  drawCircle(ex, ey, 5, '#fff', 'var(--accent-cyan)', 2.5);
-  drawCircle(dx, dy, 5, '#fff', 'var(--text-muted)', 2);
+function drawSideAngle(svg, n, lesson) {
+  const ay = 110 + (10 - n) * 20;
+  svg.innerHTML += `${text(70, 70, "三角形邊角關係：最大角面對最長邊", "svg-title")}
+    ${text(70, 108, "改變頂點高度，邊長與對角排序一起改變", "svg-note")}
+    <polygon points="420,${ay} 210,410 720,410" fill="${lesson.accent}" opacity="0.12" stroke="${lesson.accent}" stroke-width="5"></polygon>
+    <line x1="210" y1="410" x2="720" y2="410" class="bold" stroke="#df3454"></line>
+    <path d="M245 410 A55 55 0 0 1 275 360" class="bold" stroke="#079669"></path>
+    <path d="M680 410 A65 65 0 0 0 640 350" class="bold" stroke="#d88600"></path>
+    ${text(392, ay - 18, "頂點", "svg-label")}
+    ${text(400, 455, "底邊最長時，對面的頂角也最醒目", "svg-label")}`;
 }
 
-function startFoldingS5Animation() {
-  if (foldingS5AnimId) cancelAnimationFrame(foldingS5AnimId);
-  
-  let start = null;
-  const duration = 1200;
-  
-  function step(timestamp) {
-    if (!start) start = timestamp;
-    const progress = Math.min(1, (timestamp - start) / duration);
-    const easeProgress = progress < 0.5 
-      ? 2 * progress * progress 
-      : 1 - Math.pow(-2 * progress + 2, 2) / 2;
-    
-    renderStage5FoldingProof(easeProgress);
-    
-    if (progress < 1) {
-      foldingS5AnimId = requestAnimationFrame(step);
-    }
-  }
-  foldingS5AnimId = requestAnimationFrame(step);
+function drawAngleMap(svg, n, lesson) {
+  const rotate = n * 9;
+  svg.innerHTML += `${text(70, 70, "角度面面觀：把角移動、旋轉、拼補", "svg-title")}
+    ${text(70, 108, "同位角、內錯角、補角都能在圖上追蹤", "svg-note")}
+    <g transform="translate(450 290) rotate(${rotate})">
+      <line x1="-230" y1="0" x2="230" y2="0" class="bold" stroke="${lesson.accent}"></line>
+      <line x1="-120" y1="-140" x2="120" y2="140" class="bold" stroke="#172033"></line>
+      <path d="M0 0 A80 80 0 0 1 62 50" class="bold" stroke="#df3454"></path>
+      <path d="M0 0 A80 80 0 0 0 -62 -50" class="bold" stroke="#079669"></path>
+    </g>
+    ${text(342, 448, "旋轉後，角度關係仍然可以追蹤", "svg-label")}`;
 }
 
-// --- Stage 6: Exterior Angle Theorem ---
-function renderStage6() {
-  if (svgDrawGroup) svgDrawGroup.innerHTML = '';
-  
-  const angleB = parseInt(document.getElementById('slider-s4-angB').value);
-  const angleA = parseInt(document.getElementById('slider-s4-angA').value);
-  const angleC_int = 180 - angleA - angleB;
-  const angleC_ext = angleA + angleB;
-  
-  const bx = 80;
-  const by = 260;
-  const cx = 260;
-  const cy = 260;
-  const dx = 370;
-  const dy = 260;
-  
-  const baseLen = cx - bx;
-  const radA = angleA * Math.PI / 180;
-  const radB = angleB * Math.PI / 180;
-  const radC = angleC_int * Math.PI / 180;
-  
-  const side_c = baseLen * Math.sin(radC) / Math.sin(radA);
-  const ax = bx + side_c * Math.cos(radB);
-  const ay = by - side_c * Math.sin(radB);
-  
-  // Draw base triangle shape
-  const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-  polygon.setAttribute('points', `${bx},${by} ${ax},${ay} ${cx},${cy}`);
-  polygon.setAttribute('fill', 'rgba(255,255,255,0.02)');
-  polygon.setAttribute('stroke', 'rgba(255,255,255,0.05)');
-  if (svgDrawGroup) svgDrawGroup.appendChild(polygon);
-  
-  // Base line with arrow marker representing Ray CD
-  const baseRay = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-  baseRay.setAttribute('x1', bx);
-  baseRay.setAttribute('y1', by);
-  baseRay.setAttribute('x2', dx);
-  baseRay.setAttribute('y2', dy);
-  baseRay.setAttribute('stroke', 'var(--text-muted)');
-  baseRay.setAttribute('stroke-width', '2.5');
-  baseRay.setAttribute('marker-end', 'url(#arrow)');
-  if (svgDrawGroup) svgDrawGroup.appendChild(baseRay);
-  
-  // Draw other two sides of triangle
-  drawLine(bx, by, ax, ay, 'var(--accent-blue)', 3);
-  drawLine(cx, cy, ax, ay, 'var(--text-secondary)', 2.5);
-  
-  // Angle B arc
-  const pathB = getAngleArcPath(bx, by, 30, -angleB, 0);
-  drawPath(pathB, 'var(--accent-blue)', 'rgba(59, 130, 246, 0.15)', 3, 'angle-b-arc');
-  
-  // Angle A arc
-  const radAB = Math.atan2(by - ay, bx - ax);
-  const radAC = Math.atan2(cy - ay, cx - ax);
-  const pathA = getAngleArcPath(ax, ay, 28, radAC*180/Math.PI, radAB*180/Math.PI);
-  drawPath(pathA, 'var(--accent-purple)', 'rgba(168, 85, 247, 0.15)', 3, 'angle-a-arc');
-  
-  // Exterior Angle C arc
-  const radCA = Math.atan2(ay - cy, ax - cx);
-  const pathC_ext = getAngleArcPath(cx, cy, 32, radCA*180/Math.PI, 0);
-  drawPath(pathC_ext, '#fb7185', 'rgba(251, 113, 133, 0.15)', 3.5, 'angle-c-ext-arc');
-  
-  // Label values
-  drawText(bx + 40, by - 12, `${angleB}°`, '#60a5fa');
-  drawText(ax, ay + 38, `${angleA}°`, '#c084fc');
-  drawText(cx + 42, cy - 16, `${angleC_ext}°`, '#f87171');
-  
-  // Label text labels
-  drawText(bx - 12, by + 12, 'B');
-  drawText(cx - 10, cy + 15, 'C');
-  drawText(ax, ay - 16, 'A');
-  drawText(dx, dy + 15, 'D');
-  
-  // Draw nodes
-  drawCircle(ax, ay, 5, '#fff', 'var(--accent-purple)', 2);
-  drawCircle(bx, by, 5, '#fff', 'var(--accent-blue)', 2);
-  drawCircle(cx, cy, 5, '#fff', 'var(--text-muted)', 2);
+function drawParallel(svg, n, lesson) {
+  const x = 360 + (n - 5) * 22;
+  svg.innerHTML += `${text(70, 70, "平行：一條截線切出整組角度規律", "svg-title")}
+    ${text(70, 108, "平行線上的同位角相等，內錯角相等，同側內角互補", "svg-note")}
+    <line x1="130" y1="210" x2="780" y2="210" class="bold" stroke="${lesson.accent}"></line>
+    <line x1="130" y1="370" x2="780" y2="370" class="bold" stroke="${lesson.accent}"></line>
+    <line x1="${x - 150}" y1="110" x2="${x + 150}" y2="470" class="bold" stroke="#172033"></line>
+    <circle cx="${x - 67}" cy="210" r="42" fill="none" stroke="#df3454" stroke-width="5"></circle>
+    <circle cx="${x + 67}" cy="370" r="42" fill="none" stroke="#df3454" stroke-width="5"></circle>
+    ${text(612, 195, "同位角", "svg-label")}`;
 }
 
-// --- Exterior Angle Theorem Peel Collage Animation ---
-function animateExteriorAngleCollage() {
-  const angleB = parseInt(document.getElementById('slider-s4-angB').value);
-  const angleA = parseInt(document.getElementById('slider-s4-angA').value);
-  
-  const bx = 80, by = 260;
-  const cx = 260, cy = 260;
-  const baseLen = cx - bx;
-  const radA = angleA * Math.PI / 180;
-  const radB = angleB * Math.PI / 180;
-  const radC = (180 - angleA - angleB) * Math.PI / 180;
-  
-  const side_c = baseLen * Math.sin(radC) / Math.sin(radA);
-  const ax = bx + side_c * Math.cos(radB);
-  const ay = by - side_c * Math.sin(radB);
-  
-  if (svgDrawGroup) {
-    const oldPeeled = svgDrawGroup.querySelectorAll('.peeled-angle');
-    oldPeeled.forEach(el => el.remove());
-  }
-  
-  // 1. Create a cloned angle sector B to fly to C
-  const sectorB = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  const pathB = getAngleArcPath(0, 0, 32, -angleB, 0);
-  sectorB.setAttribute('d', pathB + ' L 0 0 Z');
-  sectorB.setAttribute('fill', 'rgba(59, 130, 246, 0.45)');
-  sectorB.setAttribute('stroke', 'var(--accent-blue)');
-  sectorB.setAttribute('stroke-width', '2.5');
-  sectorB.setAttribute('class', 'peeled-angle');
-  
-  sectorB.style.transform = `translate(${bx}px, ${by}px)`;
-  if (svgDrawGroup) svgDrawGroup.appendChild(sectorB);
-  
-  // 2. Create a cloned angle sector A to fly to C
-  const sectorA = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  const radAB = Math.atan2(by - ay, bx - ax);
-  const pathA = getAngleArcPath(0, 0, 28, -angleA, 0);
-  sectorA.setAttribute('d', pathA + ' L 0 0 Z');
-  sectorA.setAttribute('fill', 'rgba(168, 85, 247, 0.45)');
-  sectorA.setAttribute('stroke', 'var(--accent-purple)');
-  sectorA.setAttribute('stroke-width', '2.5');
-  sectorA.setAttribute('class', 'peeled-angle');
-  
-  sectorA.style.transform = `translate(${ax}px, ${ay}px) rotate(${radAB * 180 / Math.PI}deg)`;
-  if (svgDrawGroup) svgDrawGroup.appendChild(sectorA);
-  
-  sectorB.getBoundingClientRect();
-  sectorA.getBoundingClientRect();
-  
-  // 3. Trigger flight animation
-  sectorB.style.transform = `translate(${cx}px, ${cy}px) rotate(0deg)`;
-  sectorA.style.transform = `translate(${cx}px, ${cy}px) rotate(${-angleB}deg)`;
+function drawParallelogram(svg, n, lesson) {
+  const skew = n * 18;
+  svg.innerHTML += `${text(70, 70, "平行四邊形：兩組平行帶出整串性質", "svg-title")}
+    ${text(70, 108, "對邊相等、對角相等，對角線互相平分", "svg-note")}
+    <polygon points="${250 + skew},170 650,170 ${650 - skew},390 250,390" fill="${lesson.accent}" opacity="0.13" stroke="${lesson.accent}" stroke-width="6"></polygon>
+    <line x1="${250 + skew}" y1="170" x2="${650 - skew}" y2="390" class="thin"></line>
+    <line x1="650" y1="170" x2="250" y2="390" class="thin"></line>
+    <circle cx="450" cy="280" r="10" fill="${lesson.accent}"></circle>
+    ${text(384, 452, "對角線交點就是彼此中點", "svg-label")}`;
 }
 
-// --- Stage 7: Quiz & Results ---
-function renderStage7() {
-  if (svgDrawGroup) svgDrawGroup.innerHTML = '';
-  
-  const trophy = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-  trophy.setAttribute('transform', 'translate(100, 100)');
-  
-  // Pedestal
-  const base = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-  base.setAttribute('x', '60');
-  base.setAttribute('y', '150');
-  base.setAttribute('width', '80');
-  base.setAttribute('height', '15');
-  base.setAttribute('rx', '4');
-  base.setAttribute('fill', 'var(--text-muted)');
-  trophy.appendChild(base);
-  
-  // Stem
-  const stem = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-  stem.setAttribute('x', '94');
-  stem.setAttribute('y', '100');
-  stem.setAttribute('width', '12');
-  stem.setAttribute('height', '50');
-  stem.setAttribute('fill', '#d1d5db');
-  trophy.appendChild(stem);
-  
-  // Cup Bowl
-  const bowl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  bowl.setAttribute('d', 'M 60 40 Q 60 100 100 100 Q 140 100 140 40 Z');
-  bowl.setAttribute('fill', 'url(#cup-gold-grad)');
-  bowl.setAttribute('stroke', '#eab308');
-  bowl.setAttribute('stroke-width', '2');
-  trophy.appendChild(bowl);
-  
-  // Handles
-  const hL = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  hL.setAttribute('d', 'M 60 50 Q 40 50 45 75 Q 50 90 65 85');
-  hL.setAttribute('fill', 'none');
-  hL.setAttribute('stroke', '#eab308');
-  hL.setAttribute('stroke-width', '4');
-  trophy.appendChild(hL);
-  
-  const hR = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  hR.setAttribute('d', 'M 140 50 Q 160 50 155 75 Q 150 90 135 85');
-  hR.setAttribute('fill', 'none');
-  hR.setAttribute('stroke', '#eab308');
-  hR.setAttribute('stroke-width', '4');
-  trophy.appendChild(hR);
-  
-  if (svgDrawGroup) svgDrawGroup.appendChild(trophy);
-  
-  drawQuizStar(200, 80, 8);
-  drawQuizStar(150, 120, 6);
-  drawQuizStar(250, 130, 7);
-  
-  if (!document.getElementById('cup-gold-grad')) {
-    const defs = geometrySvg.querySelector('defs');
-    if (defs) {
-      const grad = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
-      grad.setAttribute('id', 'cup-gold-grad');
-      grad.setAttribute('x1', '0%');
-      grad.setAttribute('y1', '0%');
-      grad.setAttribute('x2', '100%');
-      grad.setAttribute('y2', '0%');
-      
-      const s1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-      s1.setAttribute('offset', '0%');
-      s1.setAttribute('stop-color', '#fbbf24');
-      const s2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-      s2.setAttribute('offset', '50%');
-      s2.setAttribute('stop-color', '#fef08a');
-      const s3 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
-      s3.setAttribute('offset', '100%');
-      s3.setAttribute('stop-color', '#ca8a04');
-      
-      grad.appendChild(s1);
-      grad.appendChild(s2);
-      grad.appendChild(s3);
-      defs.appendChild(grad);
-    }
-  }
+function drawQuadFamily(svg, n, lesson) {
+  const items = ["四邊形", "平行四邊形", "矩形", "菱形", "正方形"];
+  const visible = items.slice(0, n);
+  svg.innerHTML += `${text(70, 70, "特殊四邊形：從家族樹看限制條件", "svg-title")}
+    ${text(70, 108, "條件越多，圖形越特殊", "svg-note")}
+    ${visible.map((item, i) => `
+      <rect x="${120 + i * 145}" y="${190 + i % 2 * 95}" width="120" height="72" rx="8" fill="${lesson.accent}" opacity="${0.14 + i * 0.08}" stroke="${lesson.accent}" stroke-width="4"></rect>
+      ${text(137 + i * 145, 235 + i % 2 * 95, item, "svg-label")}
+      ${i > 0 ? `<path d="M${95 + i * 145} ${226 + (i - 1) % 2 * 95} H${120 + i * 145}" class="thin" marker-end="url(#arrow)"></path>` : ""}
+    `).join("")}`;
 }
 
-function drawQuizStar(cx, cy, r) {
-  const star = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  let d = '';
-  for (let i = 0; i < 10; i++) {
-    const rad = (i * 36 * Math.PI) / 180;
-    const curR = i % 2 === 0 ? r : r / 2.2;
-    const x = cx + curR * Math.cos(rad - Math.PI/2);
-    const y = cy + curR * Math.sin(rad - Math.PI/2);
-    d += (i === 0 ? 'M' : 'L') + ` ${x} ${y}`;
-  }
-  d += ' Z';
-  star.setAttribute('d', d);
-  star.setAttribute('fill', '#fde047');
-  star.setAttribute('stroke', '#eab308');
-  star.setAttribute('stroke-width', '1');
-  if (svgDrawGroup) svgDrawGroup.appendChild(star);
+function drawJourney(svg, n, lesson) {
+  const steps = ["觀察", "猜想", "標記", "驗證", "推理", "說明"];
+  svg.innerHTML += `${text(70, 70, "發現平行之旅：把性質串成推理路線", "svg-title")}
+    ${text(70, 108, "幾何不是單點知識，而是一條從圖到證明的路", "svg-note")}
+    ${steps.map((step, i) => `
+      <circle cx="${135 + i * 125}" cy="${285 + Math.sin(i) * 55}" r="42" fill="${lesson.accent}" opacity="${i < n ? 0.85 : 0.18}"></circle>
+      ${text(103 + i * 125, 292 + Math.sin(i) * 55, step, "svg-label")}
+      ${i < steps.length - 1 ? `<path d="M${178 + i * 125} ${285 + Math.sin(i) * 55} H${215 + i * 125}" class="thin" marker-end="url(#arrow)"></path>` : ""}
+    `).join("")}`;
 }
 
-// --- Quiz Validation Mechanism ---
-function checkQuiz(qIdx, optionIdx, btnElement) {
-  const answers = { 1: 1, 2: 2, 3: 1 };
-  
-  const correctOpt = answers[qIdx];
-  const optionsContainer = btnElement.parentNode;
-  const buttons = optionsContainer.querySelectorAll('.quiz-btn');
-  const expCard = document.getElementById(`exp-q${qIdx}`);
-  
-  buttons.forEach((btn, idx) => {
-    btn.disabled = true;
-    if (idx === correctOpt) {
-      btn.classList.add('correct');
-    } else if (idx === optionIdx) {
-      btn.classList.add('incorrect');
-    }
-  });
-  
-  if (expCard) {
-    expCard.style.display = 'block';
-    if (window.MathJax) {
-      if (window.MathJax.typesetPromise) {
-        window.MathJax.typesetPromise([expCard]);
-      } else if (window.MathJax.typeset) {
-        window.MathJax.typeset([expCard]);
-      }
-    }
-  }
-  
-  if (optionIdx === correctOpt) {
-    createCanvasConfetti();
-  }
-}
-
-function createCanvasConfetti() {
-  for (let i = 0; i < 12; i++) {
-    const rx = Math.random() * 200 + 100;
-    const ry = Math.random() * 200 + 80;
-    const starGlow = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    starGlow.setAttribute('cx', rx);
-    starGlow.setAttribute('cy', ry);
-    starGlow.setAttribute('r', Math.random() * 4 + 2);
-    starGlow.setAttribute('fill', 'none');
-    starGlow.setAttribute('stroke', ['#67e8f9', '#c084fc', '#fde047', '#34d399'][Math.floor(Math.random()*4)]);
-    starGlow.setAttribute('stroke-width', '2');
-    starGlow.setAttribute('style', 'transition: all 1s ease-out; opacity: 1;');
-    if (svgDrawGroup) svgDrawGroup.appendChild(starGlow);
-    
-    setTimeout(() => {
-      starGlow.setAttribute('r', '20');
-      starGlow.style.opacity = '0';
-      setTimeout(() => starGlow.remove(), 1000);
-    }, 50);
-  }
-}
-
-// ==========================================
-// SVG PRIMITIVE DRAWING UTILITIES
-// ==========================================
-function drawLine(x1, y1, x2, y2, color, width = 2, dash = '') {
-  const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-  line.setAttribute('x1', x1);
-  line.setAttribute('y1', y1);
-  line.setAttribute('x2', x2);
-  line.setAttribute('y2', y2);
-  line.setAttribute('stroke', color);
-  line.setAttribute('stroke-width', width);
-  line.setAttribute('stroke-linecap', 'round');
-  if (dash) {
-    line.setAttribute('stroke-dasharray', dash);
-  }
-  if (svgDrawGroup) svgDrawGroup.appendChild(line);
-  return line;
-}
-
-function drawCircle(cx, cy, r, fill, stroke, strokeWidth = 2) {
-  const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-  circle.setAttribute('cx', cx);
-  circle.setAttribute('cy', cy);
-  circle.setAttribute('r', r);
-  circle.setAttribute('fill', fill);
-  circle.setAttribute('stroke', stroke);
-  circle.setAttribute('stroke-width', strokeWidth);
-  if (svgDrawGroup) svgDrawGroup.appendChild(circle);
-  return circle;
-}
-
-function drawText(x, y, content, color = 'var(--text-primary)') {
-  const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-  txt.setAttribute('x', x);
-  txt.setAttribute('y', y);
-  txt.setAttribute('class', 'svg-text');
-  txt.setAttribute('fill', color);
-  txt.textContent = content;
-  if (svgDrawGroup) svgDrawGroup.appendChild(txt);
-  return txt;
-}
-
-function drawPath(d, stroke, fill = 'none', strokeWidth = 2, classId = '') {
-  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-  path.setAttribute('d', d);
-  path.setAttribute('stroke', stroke);
-  path.setAttribute('fill', fill);
-  path.setAttribute('stroke-width', strokeWidth);
-  if (classId) {
-    path.setAttribute('id', classId);
-  }
-  if (svgDrawGroup) svgDrawGroup.appendChild(path);
-  return path;
-}
-
-// --- Bulletproof Explicit Global Exposure for onclick Event Handlers ---
-window.prevSlide = prevSlide;
-window.nextSlide = nextSlide;
-window.setGlobalStage = setGlobalStage;
-window.checkQuiz = checkQuiz;
-window.animateExteriorAngleCollage = animateExteriorAngleCollage;
-window.startFoldingAnimation = startFoldingAnimation;
-window.startFoldingS5Animation = startFoldingS5Animation;
+init();

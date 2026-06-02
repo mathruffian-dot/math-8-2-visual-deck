@@ -432,6 +432,8 @@ input[type="range"] {
 .num-text {
   font: 900 17px "Noto Sans TC", sans-serif;
   fill: white;
+  text-anchor: middle;
+  dominant-baseline: central;
 }
 
 .parallel-line {
@@ -491,6 +493,11 @@ input[type="range"] {
   fill: none;
   stroke-width: 7;
   stroke-linecap: round;
+}
+
+.hint-text {
+  font: 900 18px "Noto Sans TC", sans-serif;
+  fill: #657187;
 }
 
 .num-circle {

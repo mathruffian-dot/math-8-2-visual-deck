@@ -272,6 +272,7 @@ function intersectionPoints(state) {
 }
 
 function arc(cx, cy, r, start, end, color, textValue, tx, ty) {
+  while (end < start) end += 360;
   const startRad = start * Math.PI / 180;
   const endRad = end * Math.PI / 180;
   const large = Math.abs(end - start) > 180 ? 1 : 0;
@@ -301,20 +302,33 @@ function drawEightAngles(state) {
     ${label(70, 62, "截線與八個角：先把位置看清楚", "svg-title")}
     ${label(70, 96, "上交點 1-4，下交點 5-8；兩線中間的是內角，外側的是外角。", "svg-note")}
     ${baseParallel(state)}
-    ${numberAngles(p.top.x, p.top.y, 1)}
-    ${numberAngles(p.bottom.x, p.bottom.y, 5)}
+    ${numberAngles(p.top.x, p.top.y, 1, state.angle)}
+    ${numberAngles(p.bottom.x, p.bottom.y, 5, state.angle)}
     ${pill(90, 438, "外角：1、2、7、8", "#7c3aed")}
     ${pill(272, 438, "內角：3、4、5、6", "#d88600")}
   `;
 }
 
-function numberAngles(x, y, start) {
-  return `
-    <circle cx="${x - 48}" cy="${y - 38}" r="19" class="num-circle"></circle>${label(x - 54, y - 31, start, "num-text")}
-    <circle cx="${x + 36}" cy="${y - 42}" r="19" class="num-circle"></circle>${label(x + 30, y - 35, start + 1, "num-text")}
-    <circle cx="${x + 42}" cy="${y + 39}" r="19" class="num-circle"></circle>${label(x + 36, y + 46, start + 2, "num-text")}
-    <circle cx="${x - 43}" cy="${y + 42}" r="19" class="num-circle"></circle>${label(x - 49, y + 49, start + 3, "num-text")}
-  `;
+function numberAngles(x, y, start, angle) {
+  const rad = angle * Math.PI / 180;
+  const cos = Math.cos(rad);
+  const sin = Math.sin(rad);
+  const spots = [
+    unit(-1 - cos, -sin),
+    unit(1 - cos, -sin),
+    unit(1 + cos, sin),
+    unit(cos - 1, sin)
+  ].map((v) => ({ x: x + v.x * 70, y: y + v.y * 62 }));
+
+  return spots.map((spot, idx) => `
+    <circle cx="${spot.x}" cy="${spot.y}" r="20" class="num-circle"></circle>
+    ${label(spot.x, spot.y, start + idx, "num-text")}
+  `).join("");
+}
+
+function unit(x, y) {
+  const len = Math.hypot(x, y) || 1;
+  return { x: x / len, y: y / len };
 }
 
 function drawCorresponding(state) {
@@ -326,7 +340,6 @@ function drawCorresponding(state) {
     ${baseParallel(state)}
     ${arc(p.top.x, p.top.y, 62, 180, 180 + a, "#2563eb", `∠1=${a}°`, p.top.x - 120, p.top.y - 54)}
     ${arc(p.bottom.x, p.bottom.y, 62, 180, 180 + a, "#2563eb", `∠5=${state.keepParallel ? a : a + 12}°`, p.bottom.x - 120, p.bottom.y - 54)}
-    ${line(p.top.x - 86, p.top.y - 92, p.bottom.x - 86, p.bottom.y - 92, "guide-line")}
     ${state.keepParallel ? label(314, 438, "同位角相等：∠1 = ∠5", "result-good") : label(292, 438, "兩線不平行時，同位角不一定相等", "result-bad")}
   `;
 }
@@ -338,25 +351,25 @@ function drawAlternate(state) {
     ${label(70, 62, "內錯角：Z 字形裡的兩個內角", "svg-title")}
     ${label(70, 96, "角 4 與角 6 在兩條線中間、截線兩側；平行時角度相等。", "svg-note")}
     ${baseParallel(state)}
-    ${line(p.top.x - 92, p.top.y + 42, p.bottom.x + 92, p.bottom.y - 42, "z-line")}
-    ${arc(p.top.x, p.top.y, 58, 0, 180 - state.angle, "#7c3aed", `∠4=${a}°`, p.top.x - 116, p.top.y + 70)}
-    ${arc(p.bottom.x, p.bottom.y, 58, 180, 360 - state.angle, "#7c3aed", `∠6=${state.keepParallel ? a : a - 14}°`, p.bottom.x + 50, p.bottom.y - 56)}
+    ${arc(p.top.x, p.top.y, 58, state.angle, 180, "#7c3aed", `∠4=${a}°`, p.top.x - 118, p.top.y + 70)}
+    ${arc(p.bottom.x, p.bottom.y, 58, 180 + state.angle, 360, "#7c3aed", `∠6=${state.keepParallel ? a : a - 14}°`, p.bottom.x + 52, p.bottom.y - 58)}
+    ${label(612, 294, "Z 字形位置", "hint-text")}
     ${state.keepParallel ? label(314, 438, "內錯角相等：∠4 = ∠6", "result-good") : label(286, 438, "Z 字形不再穩定，內錯角不一定相等", "result-bad")}
   `;
 }
 
 function drawSameSide(state) {
   const p = intersectionPoints(state);
-  const a = 180 - state.angle;
-  const b = state.angle;
+  const a = state.angle;
+  const b = 180 - state.angle;
   const sum = state.keepParallel ? 180 : 166;
   els.visualSvg.innerHTML += `
     ${label(70, 62, "同側內角：同一側，合起來是平角", "svg-title")}
     ${label(70, 96, "角 3 與角 6 在截線同側、兩條線中間；平行時相加 180°。", "svg-note")}
     ${baseParallel(state)}
-    ${arc(p.top.x, p.top.y, 58, 180 - state.angle, 0, "#d88600", `∠3=${a}°`, p.top.x + 52, p.top.y + 72)}
-    ${arc(p.bottom.x, p.bottom.y, 58, 180, 180 + state.angle, "#d88600", `∠6=${b}°`, p.bottom.x + 52, p.bottom.y - 52)}
-    ${line(p.top.x + 104, p.top.y + 48, p.bottom.x + 104, p.bottom.y - 48, "same-side-line")}
+    ${arc(p.top.x, p.top.y, 58, 0, state.angle, "#d88600", `∠3=${a}°`, p.top.x + 54, p.top.y + 70)}
+    ${arc(p.bottom.x, p.bottom.y, 58, 180 + state.angle, 360, "#d88600", `∠6=${b}°`, p.bottom.x + 52, p.bottom.y - 58)}
+    ${label(612, 294, "同側內角", "hint-text")}
     ${state.keepParallel ? label(284, 438, `${a}° + ${b}° = 180°，同側內角互補`, "result-good") : label(300, 438, `目前約 ${sum}°，不符合互補條件`, "result-bad")}
   `;
 }
@@ -381,9 +394,8 @@ function drawSolve(state) {
     ${label(70, 62, "求未知角：先找關係，再搬角度", "svg-title")}
     ${label(70, 96, "例：已知一個內錯角，利用平行線性質找到 x。", "svg-note")}
     ${baseParallel({ ...state, keepParallel: true })}
-    ${arc(p.top.x, p.top.y, 58, 0, x, "#7c3aed", `已知 ${x}°`, p.top.x + 46, p.top.y + 70)}
-    ${arc(p.bottom.x, p.bottom.y, 58, 180, 180 + x, "#7c3aed", `x = ${x}°`, p.bottom.x - 120, p.bottom.y - 52)}
-    ${line(p.top.x + 86, p.top.y + 42, p.bottom.x - 86, p.bottom.y - 42, "z-line")}
+    ${arc(p.top.x, p.top.y, 58, state.angle, 180, "#7c3aed", `已知 ${x}°`, p.top.x - 118, p.top.y + 70)}
+    ${arc(p.bottom.x, p.bottom.y, 58, 180 + state.angle, 360, "#7c3aed", `x = ${x}°`, p.bottom.x + 52, p.bottom.y - 58)}
     ${label(240, 438, "因為 l ∥ m，內錯角相等，所以 x 直接等於已知角", "result-good")}
   `;
 }
